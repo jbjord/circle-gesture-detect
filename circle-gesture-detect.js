@@ -26,3 +26,23 @@ class PointSample {
     }
 
 }
+
+class SampleLog {
+    constructor(start) {
+        this.start = start;
+        this.log = [start];
+        this.dydx = []
+        this.d2ydx2 = []
+        this.dxdt = []
+        this.dydt = []
+    }
+
+
+    add(point) {
+        //TODO calculate derivatives
+        //add point last
+        this.log.push(point);
+    }
+
+
+}
