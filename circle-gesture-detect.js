@@ -1,4 +1,13 @@
-
+CGD_THRESHOLDS = {
+    radius: {
+        min: 15,
+        max: 1080
+    },
+    angleAccumulation: {
+        min: 270,
+        max: 450
+    }
+}
 
 class PointSample {
     constructor(x, y, t) {
