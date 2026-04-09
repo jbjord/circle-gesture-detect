@@ -66,13 +66,44 @@ class SampleLog {
         this.log = [start]; //de-jittered points
     }
 
+
     /**
-     * Add a point to the log with de-jittering based on this.minStep.
+     * Add a PointSample to the log with de-jittering based on this.minStep.
      * Subsequent points have to be at least this.minStep distance away.
+     * @overload
      * @param {PointSample} point - The point to add.
      * @returns {boolean} Whether point was added to log or not.
      */
-    add(point) {
+
+    /**
+     * Add a point (xy-coord + timestamp) to the log with de-jittering based 
+     * on this.minStep.
+     * Subsequent points have to be at least this.minStep distance away.
+     * @overload
+     * @param {number} x - x-coordinate.
+     * @param {number} y - y-coordinate.
+     * @param {number} t - timestamp.
+     * @returns {boolean} Whether point was added to log or not.
+     */
+
+    /**
+     * Implementation of the overloaded add() method.
+     * @param {PointSample|number} a
+     * @param {number} [b]
+     * @param {number} [c]
+     * @returns {boolean}
+     */
+    add(a, b, c) {
+        let point;
+        // add(PointSample)
+        if (a instanceof PointSample) {
+            point = a;
+        }
+        // add(x, y, t)
+        else {
+            point = new PointSample(a, b, c);
+        }
+
         this.rawLog.add(point);
 
         prev = this.log[this.log.length - 1];
