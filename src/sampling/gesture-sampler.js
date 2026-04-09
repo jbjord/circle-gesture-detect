@@ -1,3 +1,4 @@
+import PointSample from "../model/point-sample.js"
 //@todo add imports
 
 /**
@@ -56,10 +57,18 @@ export default class GestureSampler {
     }
 
     /**
-     * @todo
+     * Handle PointerDown event by starting recognizer.
+     * @param {PointerEvent} e 
      */
     #onPointerDown(e) {
+        if (this.#pointerId !== null) {
+            //ignore multi-touch
+            return;
+        }
 
+        this.#pointerId = e.pointerId;
+        const p = new PointSample(e.clientX, e.clientY, e.timeStamp);
+        this.recognizer.start(p);
     }
 
     /**
