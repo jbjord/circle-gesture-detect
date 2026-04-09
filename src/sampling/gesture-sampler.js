@@ -90,10 +90,22 @@ export default class GestureSampler {
     }
 
     /**
-     * @todo
+     * Handle PointerUp event by adding final point.
+     * Other logic needs to be implemented.
+     * @param {PointerEvent} e 
+     * @todo Add more logic
      */
     #onPointerUp(e) {
+        if (this.#pointerId !== null) return;
 
+        this.recognizer.addPoint(e.clientX, e.clientY, e.timeStamp);
+
+        //@todo add logic here to
+        // - do a final check of thresholds
+        // - disable default actions on target when appropriate
+        // - emit circle complete event?
+        // - change recognizer to idle state?
+        
     }
 
     /**
