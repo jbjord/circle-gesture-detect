@@ -2,7 +2,7 @@
  * A sampled xy-point with a timestamp
  * @class
  */
-class PointSample {
+export default class PointSample {
     /**
      * @constructor
      * @param {number} x - X coordinate
