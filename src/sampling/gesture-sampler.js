@@ -72,9 +72,20 @@ export default class GestureSampler {
     }
 
     /**
-     * @todo
+     * Handle PointerMove event by adding point and disabling default actions 
+     * and emitting events as appropriate
+     * @param {PointerEvent} e  
+     * @todo Add more logic
      */
     #onPointerMove(e) {
+        if (this.#pointerId !== null) return;
+
+        this.recognizer.addPoint(e.clientX, e.clientY, e.timeStamp);
+
+        //@todo add logic here to 
+        // - disable default actions on target when appropriate
+        // - emit circle complete event?
+        // - emit definitely-not-a-circle event
 
     }
 
