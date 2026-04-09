@@ -3,6 +3,11 @@
  * @class
  */
 export default class SampleLog {
+    #minX;
+    #maxX;
+    #minY;
+    #maxY;
+
     /**
      * Stores sampled points of the gesture.
      *  - .log are the logged points after de-jittering
@@ -20,6 +25,12 @@ export default class SampleLog {
         this.pathLength = 0;
         this.rawLog = [start]; //all points logged
         this.log = [start]; //de-jittered points
+
+        //set initial min/max bounding coords
+        this.#minX = start.x;
+        this.#maxX = start.x;
+        this.#minY = start.y;
+        this.#maxY = start.y;
     }
 
 
@@ -98,6 +109,24 @@ export default class SampleLog {
      */
     distanceFromStart() {
         return this.start.distance(this.log[this.log.length - 1]);
+    }
+
+    /**
+     * Update minimum & maximum bounding coordinates.
+     * @param {PointSample} point
+     */
+    #updateMinMaxCoords(point) {
+        if (point.x < this.#minX) {
+            this.#minX = point.x;
+        } else if (point.x > this.#maxX) {
+            this.#maxX = point.x;
+        }
+
+        if (point.y < this.#minY) {
+            this.#minY = point.xy;
+        } else if (point.y > this.#maxY) {
+            this.#maxY = point.y;
+        }
     }
 
 }
