@@ -128,11 +128,14 @@ export default class SampleLog {
      * @param {PointSample} b - Penultimate point.
      * @param {PointSample} c - Latest point.
      */
-    #crossProduct(a, b, c) {
+    #vectorProducts(a, b, c) {
         const deltaAB = this.#getDeltas(a, b);
         const deltaBC = this.#getDeltas(b, c);
 
-        return deltaAB.x * deltaBC.y - deltaAB.y * deltaBC.x;
+        const dotProduct = deltaAB.x * deltaBC.x + deltaAB.y * deltaBC.y;
+        const crossProduct = deltaAB.x * deltaBC.y - deltaAB.y * deltaBC.x;
+
+        return { dot: dotProduct, cross: crossProduct}
     }
 
     /**
@@ -216,7 +219,7 @@ export default class SampleLog {
             return "straight";
         }
 
-        const cross = this.#crossProduct(a, b, c);
+        const cross = this.#vectorProducts(a, b, c).cross;
 
         if (cross > epsilon) {
             return "counterclockwise";
