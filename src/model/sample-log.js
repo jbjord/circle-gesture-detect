@@ -86,6 +86,7 @@ export default class SampleLog {
         pathLength += step;
 
         this.log.push(point);
+        this.#updateMinMaxCoords();
         return true;    
     }
 
@@ -127,6 +128,22 @@ export default class SampleLog {
         } else if (point.y > this.#maxY) {
             this.#maxY = point.y;
         }
+    }
+
+    /**
+     * Gets the width that the logged points have covered.
+     * @returns {number}
+     */
+    getBoundingWidth() {
+        return this.#maxX - this.#minX;
+    }
+
+    /**
+     * Gets the height that the logged points have covered.
+     * @returns {number}
+     */
+    getBoundingHeight() {
+        return this.#maxY - this.#minY;
     }
 
 }
