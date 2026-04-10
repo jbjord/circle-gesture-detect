@@ -22,7 +22,16 @@ export default class SampleLog {
          */
         this.start = start;
         this.minStep = minStep;
+
         this.pathLength = 0;
+
+        //directional metrics
+        this.clockwiseLength = 0;
+        this.counterClockwiseLength = 0;
+        this.mostRecentDirection = "straight";
+        this.directionChangeCount = 0;
+
+        //logs of PointSamples
         this.rawLog = [start]; //all points logged
         this.log = [start]; //de-jittered points
 
@@ -86,6 +95,7 @@ export default class SampleLog {
         pathLength += step;
 
         this.log.push(point);
+        this.#updateDirectionalMetrics();
         this.#updateMinMaxCoords();
         return true;    
     }
@@ -113,7 +123,183 @@ export default class SampleLog {
     }
 
     /**
-     * Update minimum & maximum bounding coordinates.
+     * 
+     * @param {PointSample} a - 2nd from last point.
+     * @param {PointSample} b - Penultimate point.
+     * @param {PointSample} c - Latest point.
+     */
+    #crossProduct(a, b, c) {
+        const deltaAB = this.#getDeltas(a, b);
+        const deltaBC = this.#getDeltas(b, c);
+
+        return deltaAB.x * deltaBC.y - deltaAB.y * deltaBC.x;
+    }
+
+    /**
+     * Calculates differences in coordinates and optionally time.
+     * @param {PointSample} a - start point.
+     * @param {PointSample} b - end point.
+     * @param {boolean} calculateDeltaT - whether deltaT should be calculated or not.
+     * @returns {PointSample} - With difference in x, in y, and optionally in t
+     * (or null if calculateDeltaT=false).
+     */
+    #getDeltas(a, b, calculateDeltaT=false) {
+        const deltaX = b.x -a.x;
+        const deltaY = b.y - a.y;
+        let deltaT = null;
+        if (calculateDeltaT) {
+            deltaT = b.t - a.t; 
+        }
+        return new PointSample(deltaX, deltaY, deltaT);
+    }
+
+    /**
+     * Return counter/clockwise direction of latest three points.
+     *
+     * Overloads:
+     *
+     * @overload
+     * @method #getClockwiseDirection
+     * @returns {"straight"|"counterclockwise"|"clockwise"}
+     *
+     * @overload
+     * @method #getClockwiseDirection
+     * @param {{ epsilon?: number }} options
+     * @returns {"straight"|"counterclockwise"|"clockwise"}
+     *
+     * @overload
+     * @method #getClockwiseDirection
+     * @param {PointSample} a
+     * @param {PointSample} b
+     * @param {PointSample} c
+     * @returns {"straight"|"counterclockwise"|"clockwise"}
+     *
+     * @overload
+     * @method #getClockwiseDirection
+     * @param {PointSample} a
+     * @param {PointSample} b
+     * @param {PointSample} c
+     * @param {{ epsilon?: number }} options
+     * @returns {"straight"|"counterclockwise"|"clockwise"}
+     *
+     * @param {...any} args Internal implementation (do not call directly with args array).
+     * @private
+     */
+    #getClockwiseDirection(...args) {
+        let a, b, c;
+        let epsilon = 0.001;
+
+        const isOptionsObject = (value) =>
+            value != null &&
+            typeof value === "object" &&
+            !Array.isArray(value) &&
+            ("epsilon" in value);
+
+        if (args.length === 0) {
+            if (this.log.length < 3) return "straight";
+            [a, b, c] = this.log.slice(-3);
+        } else if (args.length === 1 && isOptionsObject(args[0])) {
+            ({ epsilon = 0.001 } = args[0]);
+            if (this.log.length < 3) return "straight";
+            [a, b, c] = this.log.slice(-3);
+        } else if (args.length === 3) {
+            [a, b, c] = args;
+        } else if (args.length === 4 && isOptionsObject(args[3])) {
+            [a, b, c] = args;
+            ({ epsilon = 0.001 } = args[3]);
+        } else {
+            console.log("#getClockwiseDirection requires (), ({epsilon}), (a,b,c), or (a,b,c,{epsilon})");
+            return "straight";
+        }
+
+        if (!a || !b || !c) {
+            return "straight";
+        }
+
+        const cross = this.#crossProduct(a, b, c);
+
+        if (cross > epsilon) {
+            return "counterclockwise";
+        }
+        if (cross < -epsilon) {
+            return "clockwise";
+        }
+        return "straight";
+    }
+
+    /**
+     * Check to see if direction has changed.
+     * @param {"straight"|"counterclockwise"|"clockwise"} dir1 - First direction.
+     * @param {"straight"|"counterclockwise"|"clockwise"} dir2 - Second direction.
+     * @returns {boolean}
+     */
+    #isDirectionChanged(dir1, dir2) {
+        if (dir1 === "straight" || dir2 === "straight") return false;
+
+        return dir1 !== dir2;
+    }
+
+
+    /**
+     * Update all directional metrics: this.mostRecentDirection, 
+     * this.clockwiseLength, this.counterclockwiseLength, 
+     * & this.directionChangeCount
+     * @param {number} distance - step distance from previous logged point.
+     */
+    #updateDirectionalMetrics(distance) {
+        const currentDirection = this.#getClockwiseDirection();
+
+        // Guard against impossible values
+        if (
+            currentDirection !== "straight" &&
+            currentDirection !== "clockwise" &&
+            currentDirection !== "counterclockwise"
+        ) {
+            console.warn(
+                "direction must be 'counterclockwise', 'clockwise', or 'straight'"
+            );
+            return;
+        }
+
+        // Existance check: just set baseline and bail
+        if (!this.mostRecentDirection) {
+            this.mostRecentDirection = currentDirection;
+            if (currentDirection === "counterclockwise") {
+                this.counterClockwiseLength += distance;
+            } else if (currentDirection === "clockwise") {
+                this.clockwiseLength += distance;
+            }
+            return;
+        }
+
+        // Same direction as last time, or both straight
+        if (
+            currentDirection === "straight" ||
+            currentDirection === this.mostRecentDirection
+        ) {
+            if (this.mostRecentDirection === "counterclockwise") {
+                this.counterClockwiseLength += distance;
+            } else if (this.mostRecentDirection === "clockwise") {
+                this.clockwiseLength += distance;
+            }
+            //add nothing if both straight
+            return;
+        }
+
+        // Direction changed (and is not straight here)
+        this.directionChangeCount += 1;
+        if (currentDirection === "counterclockwise") {
+            this.counterClockwiseLength += distance;
+        } else if (currentDirection === "clockwise") {
+            this.clockwiseLength += distance;
+        }
+        this.mostRecentDirection = currentDirection;
+    }
+
+
+    /**
+     * Update minimum & maximum bounding coordinates: this.#minX, this.#maxX,
+     * this.#minY, and this.#maxY
      * @param {PointSample} point
      */
     #updateMinMaxCoords(point) {
