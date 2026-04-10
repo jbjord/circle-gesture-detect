@@ -123,10 +123,11 @@ export default class SampleLog {
     }
 
     /**
-     * 
+     * Returns dot & cross products given three points a -> b -> c.
      * @param {PointSample} a - 2nd from last point.
      * @param {PointSample} b - Penultimate point.
      * @param {PointSample} c - Latest point.
+     * @returns {dot: number, cross: number} - dot- and cross-products.
      */
     #vectorProducts(a, b, c) {
         const deltaAB = this.#getDeltas(a, b);
