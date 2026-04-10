@@ -31,6 +31,10 @@ export default class SampleLog {
         this.mostRecentDirection = "straight";
         this.directionChangeCount = 0;
 
+        //angular metrics
+        this.totalTurn = 0; //accumulated signed angle
+        this.totalAbsTurn = 0; //sum of all angle changes
+
         //logs of PointSamples
         this.rawLog = [start]; //all points logged
         this.log = [start]; //de-jittered points
@@ -92,10 +96,11 @@ export default class SampleLog {
             return false;
         }
         
-        pathLength += step;
+        this.pathLength += step;
 
         this.log.push(point);
         this.#updateDirectionalMetrics();
+        this.#updateAngularMetrics()
         this.#updateMinMaxCoords();
         return true;    
     }
@@ -318,6 +323,22 @@ export default class SampleLog {
         } else if (point.y > this.#maxY) {
             this.#maxY = point.y;
         }
+    }
+
+    #updateAngularMetrics() {
+        if (this.log.length < 3) return;
+        
+        [a, b, c] = this.log.slice(-3);
+
+        const vectorProducts = this.#vectorProducts(a, b, c);
+        const cross = vectorProducts.cross;
+        const dot = vectorProducts.dot;
+
+        // signed turn in [-PI, PI]
+        const dTheta = Math.atan2(cross, dot);
+
+        this.totalTurn += dTheta;
+        this.totalAbsTurn += Math.abs(dTheta);
     }
 
     /**
