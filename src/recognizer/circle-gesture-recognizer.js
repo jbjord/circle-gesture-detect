@@ -71,8 +71,18 @@ export default class CircleGestureRecognizer {
 
         },
 
+        /**
+         * "notCircle": rejected as a circle.
+         * Further input ignored.
+         */
         notCircle: {
+            addPoint(ctx, x, y, t) {
+                //no-op - already rejected
+            },
 
+            end(ctx) {
+                //no-op - already rejected
+            }
         }
     }
 
