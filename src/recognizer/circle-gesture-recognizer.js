@@ -59,7 +59,47 @@ export default class CircleGestureRecognizer {
         }
     }
 
- 
+    /***************************************************************************
+     * DRAFT Public API
+     * start, addPoint, & end delegate to the state machine versions as appropriate
+     **************************************************************************/
+     
+    /**
+     * Start a new gesture with the first point.
+     * @param {PointSample} point 
+     */
+    start(point) {
+        this.state.start?.(this, point);
+    }
+
+    /**
+     * Add a point to the current gesture.
+     * @param {number} x - x-coordinate.
+     * @param {number} y - y-coordinate. 
+     * @param {number} t - timestamp.
+     */
+    addPoint(x, y, t) {
+        this.state.addPoint?.(this, x, y, t);
+    }
+
+    /**
+     * Signal that the gesture has ended.
+     */
+    end() {
+        this.state.end?.(this);
+    }
+    
+    isCircle() {
+        return this.state === this.states.circleComplete;
+    }
+
+    isNotCircle() {
+        return this.state === this.states.notCircle;
+    }
+
+    /***************************************************************************
+     * Internal methods & helpers
+     **************************************************************************/
 
     /**
      * Checks if gesture is within the minimum allowed diameter.
@@ -93,7 +133,7 @@ export default class CircleGestureRecognizer {
 
     /**
      * Change state to notCircle.
-     * Can happen from any state except idle & tooEarly.
+     * Can happen from any state except idle.
      */
     #toNotCircle() {
         this.state = this.states.notCircle;
