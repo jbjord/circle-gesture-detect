@@ -50,7 +50,24 @@ export default class CircleGestureRecognizer {
 
         },
 
+        /**
+         * "circleComplete": recognized as a circle.
+         * Further input ignored. 
+         */
         circleComplete: {
+            /**
+             * Ignore extra points.
+             */
+            addPoint(ctx, x, y, t) {
+                //no-op
+            },
+
+            /**
+             * Ending when already complete is no-op.
+             */
+            end(ctx) {
+                //no-op
+            }
 
         },
 
