@@ -2,7 +2,8 @@
  * Default thresholds for circle gesture detection.
  *
  * @typedef {object} CircleGestureThresholds
- * @property {number} dejitterDistance - Minimum movement before logging a point.
+ * @property {number} dejitterDistance - Minimum movement before logging a 
+ * subsequent point.
  * @property {number} minDiameter - Minimum diameter for a valid circle.
  * @property {number} maxDiameter - Maximum diameter for a valid circle.
  * @property {number} minSamples - Minimum number of samples required before 
