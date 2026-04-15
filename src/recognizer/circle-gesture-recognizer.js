@@ -33,7 +33,15 @@ export default class CircleGestureRecognizer {
              * @param {PointSample} point - Starting point.
              */
             start(ctx, point) {
-                ctx.log = new SampleLog(point, ctx.thresholds.dejitterDistance);
+                const options = {
+                    minSamples: ctx.thresholds.minSamples,
+                    minDistance: ctx.thresholds.minDistance
+                }
+                ctx.log = new SampleLog(
+                    point, 
+                    ctx.thresholds.dejitterDistance,
+                    options
+                );
                 ctx.state = ctx.states.tooEarly;
             }
         },
