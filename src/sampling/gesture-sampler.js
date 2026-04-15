@@ -1,5 +1,5 @@
 import PointSample from "../model/point-sample.js"
-//@todo add imports
+import { DEFAULT_THRESHOLDS } from "../config/default-thresholds.js";
 
 /**
  * Handle DOM pointer events, feed them into CircleGestureRecognizer,
@@ -17,21 +17,13 @@ export default class GestureSampler {
 
     /**
      * @param {HTMLElement|Document} target 
-     * @param {object} options
-     * @param {number} options.dejitterDistance
-     * @param {number} options.minDiameter
-     * @param {number} options.maxDiameter
-     * @todo #1 Pass proper parameters to CircleGestureRecognizer
-     * @todo Add more parameters
+     * @param {CircleGestureThresholds} [thresholds] - thresholds for detection
      */
-    constructor(target, {
-        dejitterDistance = 3,
-        minDiameter = 20,
-        maxDiameter = 1080
-    } = {}) {
+    constructor(target, thresholds = {}) {
         this.target = target;
-        //@todo #1 Pass proper parameters
-        this.recognizer = new CircleGestureRecognizer();
+        this.thresholds = { ...DEFAULT_THRESHOLDS, ...thresholds };
+        
+        this.recognizer = new CircleGestureRecognizer(this.thresholds);
 
         this.#pointerId = null;
 

@@ -14,17 +14,11 @@ export default class CircleGestureRecognizer {
 
 
     /**
-     * 
-     * @param {object} param0 
+     * Constructs state machine for live tracking a gesture.
+     * @param {CircleGestureThresholds} thresholds 
      */
-    constructor({
-        dejitterDistance,
-        minDiameter,
-        maxDiameter
-    } = {}) {
-        this.dejitterDistance = dejitterDistance;
-        this.minDiameter = minDiameter;
-        this.maxDiameter = maxDiameter;
+    constructor(thresholds) {
+        this.thresholds = thresholds;
 
         /**@type {SampleLog|null} */
         this.log = null
@@ -39,7 +33,7 @@ export default class CircleGestureRecognizer {
              * @param {PointSample} point - Starting point.
              */
             start(ctx, point) {
-                ctx.log = new SampleLog(point, ctx.dejitterDistance);
+                ctx.log = new SampleLog(point, ctx.thresholds.dejitterDistance);
                 ctx.state = ctx.states.tooEarly;
             }
         },
@@ -73,7 +67,7 @@ export default class CircleGestureRecognizer {
      * @param {CircleGestureRecognizer} ctx - Context.
      */
     isWithinStartingCircle(ctx) {
-        return Math.abs(ctx.log.distanceFromStart()) <= ctx.minDiameter;
+        return Math.abs(ctx.log.distanceFromStart()) <= ctx.thresholds.minDiameter;
     }
 
     /**
@@ -84,7 +78,17 @@ export default class CircleGestureRecognizer {
     isTooBig(ctx) {
         const dx = ctx.log.getBoundingWidth();
         const dy = ctx.log.getBoundingHeight();
-        return dx > ctx.maxDiameter || dy > ctx.maxDiameter;
+        const max = ctx.thresholds.maxDiameter
+        return dx > max || dy > max;
+    }
+
+    /**
+     * 
+     * @param {CircleGestureRecognizer} ctx 
+     */
+    hasTooManyBacktracks(ctx) {
+        const backtrackCount = ctx.log.directionChangeCount;
+        return backtrackCount > ctx.thresholds.maxReversals;
     }
 
     /**
