@@ -134,7 +134,7 @@ export default class CircleGestureRecognizer {
      * @param {CircleGestureRecognizer} ctx - Context.
      */
     isWithinStartingCircle(ctx) {
-        return Math.abs(ctx.log.distanceFromStart()) <= ctx.thresholds.minDiameter;
+        return ctx.log.isReadyForClassification();
     }
 
     /**

@@ -362,8 +362,12 @@ export default class SampleLog {
         this.totalTurn += dTheta;
         this.totalAbsTurn += Math.abs(dTheta);
     }
-
-    #isReadyForClassification() {
+    /**
+     * Check if the gesture is ready for classification (exceeds either/both 
+     * minSamples and minDistance).
+     * @returns {boolean}
+     */
+    isReadyForClassification() {
         //no thresholds set, return true
         if (!this.minSamples && !this.minDistance) {
             return true; 
