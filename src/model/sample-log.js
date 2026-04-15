@@ -12,16 +12,38 @@ export default class SampleLog {
      * Stores sampled points of the gesture.
      *  - .log are the logged points after de-jittering
      *  - .rawLog are all points
-     * @param {PointSample} start - starting point for this sample
+     * @param {PointSample} start - starting point for this sample log
      * @param {number} minStep - minimum distance between subsequent logged points
+     * Used for de-jittering.
+     * @param {object} [options] - Optional configuration.
+     * @param {number} [options.minSamples] - Minimum number of logged samples 
+     * required before classification may begin. May be used alone or together 
+     * with `minDistance`.
+     * @param {number} [options.minDistance] - Minimum total path distance 
+     * required before classification may begin. May be used alone or together 
+     * with `minSamples`.
+     * 
+     * @description
+     * Classification is intended to begin only after both `minSamples` and 
+     * `minDistance` have been satisfied. 
+     *  - If only one is specified, then that governs.
+     *  - If both are specified, classification waits for the later of the two 
+     * conditions to be met.
      */
-    constructor(start, minStep) {
+    constructor(start, minStep, {
+        minSamples = undefined,
+        minDistance = undefined
+    } = {}) {
         /**
          * Starting point
          * @type {PointSample}
          */
         this.start = start;
         this.minStep = minStep;
+
+        this.minSamples = minSamples;
+        this.minDistance = minDistance;
+
 
         this.pathLength = 0;
 
@@ -339,6 +361,21 @@ export default class SampleLog {
 
         this.totalTurn += dTheta;
         this.totalAbsTurn += Math.abs(dTheta);
+    }
+
+    #isReadyForClassification() {
+        //no thresholds set, return true
+        if (!this.minSamples && !this.minDistance) {
+            return true; 
+        }
+
+        //one or both might be set
+        const enoughSamples = 
+            this.minSamples == null || this.log.length >= this.minSamples;
+        const enoughDistance = 
+            this.minDistance == null || this.pathLength >= this.minDistance;
+
+        return enoughSamples && enoughDistance;
     }
 
     /**
