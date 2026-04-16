@@ -92,6 +92,14 @@ export default class CircleGestureRecognizer {
                 if (ctx.canComputeCentroid(ctx)) {
                     ctx.state = ctx.states.circleLikely;
                 }
+            },
+            /**
+             * Gesture ended.
+             * @param {CircleGestureRecognizer} ctx - Context. 
+             * @param {string} msg - Message why gesture ended.
+             */
+            end(ctx, msg) {
+                ctx.#toNotCircle();
             }
         },
 
