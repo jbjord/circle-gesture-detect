@@ -398,4 +398,11 @@ export default class SampleLog {
         return this.#maxY - this.#minY;
     }
 
+    /**
+     * Returns total signed accumulated angle in degrees
+     * @returns {number} - in degrees
+     */
+    getTotalTurnDegrees() {
+        return this.totalTurn * 180 / Math.PI;
+    }
 }
