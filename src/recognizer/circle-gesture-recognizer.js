@@ -66,9 +66,10 @@ export default class CircleGestureRecognizer {
             },
             /**
              * Gesture ended.
-             * @param {CircleGestureRecognizer} ctx - Context. 
+             * @param {CircleGestureRecognizer} ctx - Context.
+             * @param {string} msg - Message why gesture ended. 
              */
-            end(ctx) {
+            end(ctx, msg) {
                 ctx.#toNotCircle();
             }
 
@@ -113,7 +114,7 @@ export default class CircleGestureRecognizer {
             /**
              * Ending when already complete is no-op.
              */
-            end(ctx) {
+            end(ctx, msg) {
                 //no-op
             }
 
@@ -128,7 +129,7 @@ export default class CircleGestureRecognizer {
                 //no-op - already rejected
             },
 
-            end(ctx) {
+            end(ctx, msg) {
                 //no-op - already rejected
             }
         }
@@ -159,9 +160,10 @@ export default class CircleGestureRecognizer {
 
     /**
      * Signal that the gesture has ended.
+     * @param {string} [msg] - Message about why gesture ended.
      */
-    end() {
-        this.state.end?.(this);
+    end(msg = "") {
+        this.state.end?.(this, msg);
     }
     
     isCircle() {
