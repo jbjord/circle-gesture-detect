@@ -74,8 +74,24 @@ export default class CircleGestureRecognizer {
 
         },
 
+        /**
+         * "possibleCircle": there are not yet enough points to calculate a
+         * stable centroid.
+         */
         possibleCircle: {
-
+            /**
+             * Add a point to the current gesture.
+             * @param {CircleGestureRecognizer} ctx - Context.
+             * @param {number} x - x-coordinate.
+             * @param {number} y - y-coordinate.
+             * @param {number} t - timestamp.
+             */
+            addPoint(ctx, x, y, t) {
+                ctx.log.add(x, y, t);
+                if (this.canComputeCentroid(ctx)) {
+                    ctx.state = ctx.states.circleLikely;
+                }
+            }
         },
 
         circleLikely: {
@@ -167,6 +183,18 @@ export default class CircleGestureRecognizer {
      */
     isWithinStartingCircle(ctx) {
         return ctx.log.isReadyForClassification();
+    }
+
+    /**
+     * Checks if gesture has accumulated enough angle/turn for the 
+     * circle centroid to be considered stable when calculated.
+     * Note this check is expected to be used for the transition out of
+     * possible circle.
+     * @param {CircleGestureRecognizer} ctx - Context.
+     * @returns {boolean} 
+     */
+    canComputeCentroid(ctx) {
+        return ctx.log.getTotalTurnDegrees() > ctx.thresholds.centroidCalcAngleAccum
     }
 
     /**
