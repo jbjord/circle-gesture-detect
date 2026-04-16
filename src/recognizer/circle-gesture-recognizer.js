@@ -23,6 +23,13 @@ export default class CircleGestureRecognizer {
         /**@type {SampleLog|null} */
         this.log = null
         this.state = this.states.idle;
+
+        /**
+         * Details for an event to be dispatched.
+         * Will be populated when gesture is definitely detected.
+         * @type {object} - details to publish along with the event.
+         */
+        this.eventDetail = {};
     }
 
     states = {
@@ -109,7 +116,7 @@ export default class CircleGestureRecognizer {
              * @param {string} msg - Message why gesture ended.
              */
             end(ctx, msg) {
-                ctx.#toNotCircle();
+                ctx.#toNotCircle(msg);
             }
         },
 
@@ -241,8 +248,13 @@ export default class CircleGestureRecognizer {
     /**
      * Change state to notCircle.
      * Can happen from any state except idle.
+     * @param {string} [msg] - Message about why circle rejected.
      */
-    #toNotCircle() {
+    #toNotCircle(msg = "") {
+        this.eventDetail = {
+            msg: msg
+        }
+
         this.state = this.states.notCircle;
     }
 
