@@ -46,7 +46,31 @@ export default class CircleGestureRecognizer {
             }
         },
 
+        /**
+         * "tooEarly": gesture logging has started but there are not yet enough 
+         * points to make any decisions.
+         */
         tooEarly: {
+            /**
+             * Add a point to the current gesture.
+             * @param {CircleGestureRecognizer} ctx - Context.
+             * @param {number} x - x-coordinate.
+             * @param {number} y - y-coordinate.
+             * @param {number} t - timestamp.
+             */
+            addPoint(ctx, x, y, t) {
+                ctx.log.add(x, y, t);
+                if (!ctx.isWithinStartingCircle(ctx)) {
+                    ctx.state = ctx.states.possibleCircle;
+                }
+            },
+            /**
+             * Gesture ended.
+             * @param {CircleGestureRecognizer} ctx - Context. 
+             */
+            end(ctx) {
+                ctx.#toNotCircle();
+            }
 
         },
 
