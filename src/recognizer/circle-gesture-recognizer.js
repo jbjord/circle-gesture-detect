@@ -88,7 +88,7 @@ export default class CircleGestureRecognizer {
              */
             addPoint(ctx, x, y, t) {
                 ctx.log.add(x, y, t);
-                if (this.canComputeCentroid(ctx)) {
+                if (ctx.canComputeCentroid(ctx)) {
                     ctx.state = ctx.states.circleLikely;
                 }
             }
