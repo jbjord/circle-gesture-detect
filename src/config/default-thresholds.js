@@ -14,10 +14,12 @@
  * (clockwise <--> counterclockwise) allowed before rejecting gesture.
  * @property {number} centroidCalcAngleAccum
  *   Threshold of accumulated signed turn (in degrees) after which the 
- *   centroid of the circle may be calculated.
+ *   centroid of the circle may be calculated. If the angle is too small,
+ *   the centroid calculation will be biased towards the arc.
  * @property {number} completeAngleAccum
  *   Threshold of accumulated signed turn (in degrees) that can be considered
  *   as a complete circle.
+ * @property {number} circularityTolerance
  * 
  * FUTURE: Consider adding
  * circularityTolerance - Allowed variance in radius.
@@ -42,5 +44,6 @@ export const DEFAULT_THRESHOLDS = {
     minDistance: 5,
     maxReversals: 2,
     centroidCalcAngleAccum: 180,
-    completeAngleAccum: 330
+    completeAngleAccum: 330,
+    circularityTolerance: 0.18
 };
