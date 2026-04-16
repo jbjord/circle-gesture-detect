@@ -89,6 +89,16 @@ export default class CircleGestureRecognizer {
              */
             addPoint(ctx, x, y, t) {
                 ctx.log.add(x, y, t);
+
+                //check if definitely not a circle
+                if (ctx.isTooBig()) {
+                    this.end(ctx, "Gesture is too big.");
+                }
+                if (ctx.hasTooManyBacktracks(ctx)) {
+                    this.end(ctx, "Gesture has too many reversals.");
+                }
+
+                //check for transition to next state
                 if (ctx.canComputeCentroid(ctx)) {
                     ctx.state = ctx.states.circleLikely;
                 }
