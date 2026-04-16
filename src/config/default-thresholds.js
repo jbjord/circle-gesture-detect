@@ -41,6 +41,6 @@ export const DEFAULT_THRESHOLDS = {
     minSamples: 5,
     minDistance: 5,
     maxReversals: 2,
-    centroidCalcAngleAccum: 135,
+    centroidCalcAngleAccum: 180,
     completeAngleAccum: 330
 };

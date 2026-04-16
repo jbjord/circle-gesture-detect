@@ -314,6 +314,32 @@ export default class CircleGestureRecognizer {
     }
 
     /**
+     * Computes mean centroid of a sample from a simple mean. 
+     * This becomes closer to the actual centroid with a larger angular sweep.
+     * @param {PointSample[]} [sample] - array of point samples, will default
+     * to this.log.log.
+     * @returns {x: number, y: number} - xy-coordinate of means
+     */
+    computeCentroid(sample) {
+        if (!sample) {
+            sample = this.log.log;
+        }
+
+        let sumX = 0;
+        let sumY = 0;
+
+        for (const pt of sample) {
+            sumX += pt.x;
+            sumY += pt.y;
+        }
+
+        return {
+            x: sumX / sample.length,
+            y: sumY / sample.length
+        };
+    }
+
+    /**
      * @todo
      * @returns {boolean}
      */
