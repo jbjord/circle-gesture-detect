@@ -120,7 +120,50 @@ export default class CircleGestureRecognizer {
             }
         },
 
+        /**
+         * "circleLikely": enough points have been collected to compare added
+         * points to the radius established throughout the gesture.
+         */
         circleLikely: {
+            /**
+             * Add a point to the current gesture.
+             * @param {CircleGestureRecognizer} ctx - Context.
+             * @param {number} x - x-coordinate.
+             * @param {number} y - y-coordinate.
+             * @param {number} t - timestamp.
+             * @todo Check for transition to circleComplete
+             * @todo Radius stability checks
+             */
+            addPoint(ctx, x, y, t) {
+                ctx.log.add(x, y, t);
+
+                //check if definitely not a circle
+                if (ctx.isTooBig()) {
+                    this.end(ctx, "Gesture is too big.");
+                }
+                if (ctx.hasTooManyBacktracks(ctx)) {
+                    this.end(ctx, "Gesture has too many reversals.");
+                }
+                //@todo add radius stability checks
+
+                //@todo check for transition to next state
+                if (false) {
+                    ctx.state = ctx.states.circleComplete;
+                }
+            },
+            /**
+             * Gesture ended: Checks to see if the complete path is a circle.
+             * @param {CircleGestureRecognizer} ctx - Context. 
+             * @param {string} msg - Message why gesture ended.
+             */
+            end(ctx, msg) {
+                if (ctx.meetsAllCircularityChecks()) {
+                    ctx.state = ctx.states.circleComplete;
+                } else {
+                    ctx.#toNotCircle("Does not meet final circularity checks.");
+                }
+            }
+
 
         },
 
@@ -256,6 +299,18 @@ export default class CircleGestureRecognizer {
         }
 
         this.state = this.states.notCircle;
+    }
+
+    /**
+     * Checks all circularity measures.
+     * Note intended to be used when a gesture is completed.
+     * @param {CircleGestureRecognizer} ctx - Context.
+     * @returns {boolean}
+     * @todo Not yet implemented
+     */
+    meetsAllCircularityChecks(ctx) {
+        console.warn("meetsAllCircularityChecks() not implemented.");
+        return false;
     }
 
     /**
