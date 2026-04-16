@@ -12,6 +12,12 @@
  * classification can begin. May be used alone or together with `minSamples`.
  * @property {number} maxReversals - Maximum number of direction changes 
  * (clockwise <--> counterclockwise) allowed before rejecting gesture.
+ * @property {number} centroidCalcAngleAccum
+ *   Threshold of accumulated signed turn (in degrees) after which the 
+ *   centroid of the circle may be calculated.
+ * @property {number} completeAngleAccum
+ *   Threshold of accumulated signed turn (in degrees) that can be considered
+ *   as a complete circle.
  * 
  * FUTURE: Consider adding
  * circularityTolerance - Allowed variance in radius.
@@ -34,5 +40,7 @@ export const DEFAULT_THRESHOLDS = {
     maxDiameter: 1080,
     minSamples: 5,
     minDistance: 5,
-    maxReversals: 2
+    maxReversals: 2,
+    centroidCalcAngleAccum: 135,
+    completeAngleAccum: 330
 };
