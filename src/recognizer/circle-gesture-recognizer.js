@@ -314,13 +314,14 @@ export default class CircleGestureRecognizer {
     }
 
     /**
-     * Computes mean centroid of a sample from a simple mean. 
+     * Computes arithmetic mean of the sample points. 
      * This becomes closer to the actual centroid with a larger angular sweep.
-     * @param {PointSample[]} [sample] - array of point samples, will default
-     * to this.log.log.
-     * @returns {x: number, y: number} - xy-coordinate of means
+     * @private
+     * @param {PointSample[]} [sample] - Optional array of point samples. 
+     * Defaults to full gesture log (this.log.log).
+     * @returns {{x: number, y: number}} - mean xy-coordinate of sample.
      */
-    computeCentroid(sample) {
+    #computeCentroid(sample) {
         if (!sample) {
             sample = this.log.log;
         }
@@ -337,6 +338,34 @@ export default class CircleGestureRecognizer {
             x: sumX / sample.length,
             y: sumY / sample.length
         };
+    }
+    
+    /**
+     * Calculates normalized radius deviation of points from their mean centroid.
+     * Lower values indicate that the points lie at a consistent distance 
+     * from the center.
+     * @param {PointSample[]} sample - array of point samples, defaults
+     * to full gesture log (this.log.log).
+     * @returns {number} - normalized standard deviation of the sample 
+     * (stddev/mean radius)
+     */
+    computeRadiusDeviation(sample) {
+        if (!sample) {
+            sample = this.log.log;
+        }
+
+        const c = this.#computeCentroid(sample);
+
+        const radii = sample.map(pt => Math.hypot(pt.x - c.x, pt.y - c.y));
+
+        const mean = radii.reduce((a, b) => a + b, 0) / radii.length;
+        if (mean === 0) return Infinity;
+
+        const variance = radii.reduce((acc, r) => acc + (r - mean) ** 2, 0) / radii.length;
+        const stddev = Math.sqrt(variance);
+        const deviation = stddev / mean;
+        return deviation;
+
     }
 
     /**
