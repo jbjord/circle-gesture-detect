@@ -51,109 +51,154 @@ export default class CircleGestureRecognizer {
         for (const t of choices) {
             if (!t.guard || t.guard(this, payload)) {
                 //todo
+                //state machine runner
+                //1. receive current state + event (above)
+                //2. apply event-level update if appropriate
+                //3. select the first matching transition by guard
+                //4. gather/call any declared effects from that transition
+                //5. return info about state, changed, effects
             }
         }
 
     }
+
     /**
      * State Machine Definition
      * As the gesture continues, points get added and the state machine follows
      * this flow:
-     * idle → tooEarly → possibleCircle → circleLikely → circleComplete🟢
-     *                 ↳ notCircle🛑     ↳ notCircle🛑   ↳ notCircle🛑 
+     * idle → tooEarly → possibleCircle → circleLikely → circle detected/rejected
+     *                 ↳ rejected        ↳ rejected 
      * 
      * If the gesture ends, it is classified if appropriate and the state
      * returns to the idle state.
      * 
-     * @todo build out targets, actions, and guards
+     * ## Runner convention
+     *  - target: null means remain in the current state
+     *  - update runs before transition guards are evaluated
+     *  - first matching guarded transition wins
+     *  - effects are to be collected by the runner and returned to caller
+     * 
+     * @todo build out targets, effects, and guards
      */
     smDefinition = {
-        /**
-         * "idle": waiting for a gesture that can be tracked.
-         */
-        idle: { 
-            on: {
-                START: {
-                    target: "tooEarly",
-                    action: "todo",
-                    guard: "todo"
+        initial: "idle",
+        states: {
+
+            /**
+             * "idle": waiting for a gesture that can be tracked.
+             */
+            idle: { 
+                on: {
+                    START: {
+                        effects: ["todo: initialize sampleLog"],
+                        target: "tooEarly"
+                    }
+                }
+            },
+
+            /**
+             * "tooEarly": gesture logging has started but there are not yet enough 
+             * points to make any decisions.
+             */
+            tooEarly: {
+                on: {
+                    POINT_ADDED: {
+                        update: "todo: add point",
+                        transitions: [
+                            {
+                                guard: "todo: shouldLeaveTooEarly",
+                                target: "possibleCircle",
+                            },
+                            {
+                                target: null
+                            }
+                        ]
+                        
+                    },
+                    END: {
+                        effects: ["report Reject 'too little evidence'"],
+                        target: "idle"
+                    }
+                }
+            },
+
+            /**
+             * "possibleCircle": there are not yet enough points to calculate a
+             * stable centroid.
+             */
+            possibleCircle: {
+                on: {
+                    POINT_ADDED: {
+                        update: "todo: add point",
+                        transitions: [
+                            {
+                                guard: "todo: call shouldRejectPossibleCircle()",
+                                effects: [
+                                    "todo: set rejection reason",
+                                    "todo: report circle rejected"
+                                ],
+                                target: "idle"
+                            },
+                            {
+                                guard: "todo: call shouldPromotePossibleCircle()",
+                                target: "circleLikely"  
+                            },
+                            {
+                                target: null
+                            }
+                        ]
+                        
+                    },
+                    END: {
+                        effects: ["todo: emit event with reason 'no stable centroid'"],
+                        target: "idle"
+                    }
+                }
+            },
+
+            /**
+             * "circleLikely": enough points have been collected to compare added
+             * points to the radius established throughout the gesture.
+             */
+            circleLikely: {
+                on: {
+                    POINT_ADDED: {
+                        update: "todo: add point",
+                        transitions: [
+                            {
+                                guard: "todo: call shouldRejectCircleLikely()",
+                                effects: [
+                                    "todo: set rejection reason",
+                                    "todo: report circle rejected"
+                                ],
+                                target: "idle"
+                            },
+                            {
+                                guard: "todo: call shouldReportCircleEarly()",
+                                effects: ["todo: report circle detected"],
+                                target: "idle",  
+                            },
+                            {
+                                target: null
+                            }
+                        ]
+                        
+                    },
+                    END: {
+                        transitions: [
+                            {
+                                guard: "todo: meetsAllCircularityChecks",
+                                effects: ["todo: circle detected output"],
+                                target: "idle"
+                            },
+                            {
+                                effects: ["todo: report circle rejected and reason"],
+                                target: "idle"
+                            }
+                        ]
+                    }
                 }
             }
-        },
-
-        /**
-         * "tooEarly": gesture logging has started but there are not yet enough 
-         * points to make any decisions.
-         */
-        tooEarly: {
-            POINT_ADDED: [
-                {
-                    target: "possibleCircle",
-                    action: "todo",
-                    guard: "todo"
-                },
-                {
-                    target: "tooEarly", //stay in tooEarly
-                    action: "todo",
-                    guard: "todo"
-                }
-            ],
-            END: {
-                target: "notCircle",
-                action: "todo"
-            }
-        },
-
-        /**
-         * "possibleCircle": there are not yet enough points to calculate a
-         * stable centroid.
-         */
-        possibleCircle: {
-            POINT_ADDED: [
-
-            ],
-            END: [
-
-            ]
-        },
-
-        /**
-         * "circleLikely": enough points have been collected to compare added
-         * points to the radius established throughout the gesture.
-         */
-        circleLikely: {
-            POINT_ADDED: [
-
-            ],
-            END: [
-
-            ]
-        },
-
-        /**
-         * "circleComplete": recognized as a circle.
-         * Further input ignored. 
-         */
-        circleComplete: {
-            POINT_ADDED: [
-
-            ],
-            END: [
-
-            ]
-        },
-
-        /**
-         * "notCircle": rejected as a circle.
-         * Further input ignored.
-         */
-        notCircle: {
-            POINT_ADDED: [
-
-            ],
-            END: [
-
-            ]
         }
     }
 
@@ -376,7 +421,57 @@ export default class CircleGestureRecognizer {
      * Internal methods & helpers
      **************************************************************************/
 
-    readyToTransitionTo
+    /**
+     * Check if all conditions are met for transitioning from "tooEarly" 
+     * to "possibleCircle" state.
+     * @returns {boolean}
+     * @todo
+     */
+    shouldLeaveTooEarly() {
+        //check to see if enough samples have been collected and/or
+        //if enough
+        return false;
+    }
+
+    /**
+     * Check if all conditions are met for rejecting the gesture as a circular 
+     * from the "possibleCircle" state.
+     * @returns {boolean}
+     * @todo
+     */
+    shouldRejectPossibleCircle() {
+        return false;
+    }
+
+    /**
+     * Check if all conditions are met for transitioning from "possibleCircle"
+     * to "circleLikely"
+     * @returns {boolean}
+     * @todo
+     */
+    shouldPromotePossibleCircle() {
+        return false;
+    }
+
+    /**
+     * Check if all conditions are met for rejecting the gesture as a circular 
+     * from the "circleLikely" state.
+     * @returns {boolean}
+     * @todo
+     */
+    shouldRejectCircleLikely() {
+        return false;
+    }
+
+    /**
+     * Check if all conditions are met to detect a circle.
+     * @returns {boolean}
+     * @todo
+     */
+    shouldReportCircleEarly() {
+        return false;
+    }
+
 
 
 
