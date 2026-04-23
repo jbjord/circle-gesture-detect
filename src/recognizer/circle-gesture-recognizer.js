@@ -22,7 +22,8 @@ export default class CircleGestureRecognizer {
 
         /**@type {SampleLog|null} */
         this.log = null
-        this.state = this.states.idle;
+        this.state = "this.states.idle";
+        //FUTURE: this.state = "idle";
 
         /**
          * Details for an event to be dispatched.
@@ -32,6 +33,128 @@ export default class CircleGestureRecognizer {
         this.eventDetail = {};
     }
 
+    /**
+     * Send information to the State Machine to take action and change state
+     * as appropriate.
+     * @param {"START"|"POINT_ADDED"|"END"} type - the type of call 
+     * @param {Object} payload - the payload for the call
+     * @returns {null}
+     * @todo Build logic
+     */
+    send(type, payload={}) {
+        const currentState = this.smDefinition[this.state];
+        const transition = currentState?.on?.[type];
+        if (!transition) return;
+
+        const choices = Array.isArray(transition) ? transition : [transition];
+
+        for (const t of choices) {
+            if (!t.guard || t.guard(this, payload)) {
+                //todo
+            }
+        }
+
+    }
+    /**
+     * State Machine Definition
+     * 
+     * @todo build out targets, actions, and guards
+     */
+    smDefinition = {
+        /**
+         * "idle": waiting for a gesture that can be tracked.
+         */
+        idle: { 
+            on: {
+                START: {
+                    target: "tooEarly",
+                    action: "todo",
+                    guard: "todo"
+                }
+            }
+        },
+
+        /**
+         * "tooEarly": gesture logging has started but there are not yet enough 
+         * points to make any decisions.
+         */
+        tooEarly: {
+            POINT_ADDED: [
+                {
+                    target: "possibleCircle",
+                    action: "todo",
+                    guard: "todo"
+                },
+                {
+                    target: "tooEarly", //stay in tooEarly
+                    action: "todo",
+                    guard: "todo"
+                }
+            ],
+            END: {
+                target: "notCircle",
+                action: "todo"
+            }
+        },
+
+        /**
+         * "possibleCircle": there are not yet enough points to calculate a
+         * stable centroid.
+         */
+        possibleCircle: {
+            POINT_ADDED: [
+
+            ],
+            END: [
+
+            ]
+        },
+
+        /**
+         * "circleLikely": enough points have been collected to compare added
+         * points to the radius established throughout the gesture.
+         */
+        circleLikely: {
+            POINT_ADDED: [
+
+            ],
+            END: [
+
+            ]
+        },
+
+        /**
+         * "circleComplete": recognized as a circle.
+         * Further input ignored. 
+         */
+        circleComplete: {
+            POINT_ADDED: [
+
+            ],
+            END: [
+
+            ]
+        },
+
+        /**
+         * "notCircle": rejected as a circle.
+         * Further input ignored.
+         */
+        notCircle: {
+            POINT_ADDED: [
+
+            ],
+            END: [
+
+            ]
+        }
+    }
+
+
+    /**
+     * OLD State Machine draft
+     * To be refactored into smDefinition
+     */
     states = {
         idle: {
             /**
@@ -245,6 +368,10 @@ export default class CircleGestureRecognizer {
     /***************************************************************************
      * Internal methods & helpers
      **************************************************************************/
+
+    readyToTransitionTo
+
+
 
     /**
      * Checks if gesture is within the minimum allowed diameter.
