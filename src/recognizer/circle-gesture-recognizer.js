@@ -57,6 +57,13 @@ export default class CircleGestureRecognizer {
     }
     /**
      * State Machine Definition
+     * As the gesture continues, points get added and the state machine follows
+     * this flow:
+     * idle → tooEarly → possibleCircle → circleLikely → circleComplete🟢
+     *                 ↳ notCircle🛑     ↳ notCircle🛑   ↳ notCircle🛑 
+     * 
+     * If the gesture ends, it is classified if appropriate and the state
+     * returns to the idle state.
      * 
      * @todo build out targets, actions, and guards
      */
