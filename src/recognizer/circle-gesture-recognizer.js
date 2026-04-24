@@ -72,8 +72,9 @@ export default class CircleGestureRecognizer {
      * Mapping Registries
      **************************************************************************/
     guardHandlers = {
-        shouldLeaveTooEarly: (event) => this.#shouldLeaveTooEarly(event),
-        shouldRejectPossibleCircle: (event) => this.#shouldRejectPossibleCircle(event),
+        shouldLeaveTooEarly: () => this.#shouldLeaveTooEarly(),
+        shouldRejectPossibleCircle: () => this.#shouldRejectPossibleCircle(),
+        shouldPromotePossibleCircle: () => this.#shouldPromotePossibleCircle(),
     };
 
     updateHandlers = {
@@ -162,7 +163,7 @@ export default class CircleGestureRecognizer {
                                 target: "idle"
                             },
                             {
-                                guard: "todo: call shouldPromotePossibleCircle()",
+                                guard: "shouldPromotePossibleCircle",
                                 target: "circleLikely"  
                             },
                             {
@@ -256,29 +257,6 @@ export default class CircleGestureRecognizer {
          * stable centroid.
          */
         possibleCircle: {
-            /**
-             * Add a point to the current gesture.
-             * @param {CircleGestureRecognizer} ctx - Context.
-             * @param {number} x - x-coordinate.
-             * @param {number} y - y-coordinate.
-             * @param {number} t - timestamp.
-             */
-            addPoint(ctx, x, y, t) {
-                ctx.log.add(x, y, t);
-
-                //check if definitely not a circle
-                if (ctx.isTooBig()) {
-                    this.end(ctx, "Gesture is too big.");
-                }
-                if (ctx.hasTooManyBacktracks(ctx)) {
-                    this.end(ctx, "Gesture has too many reversals.");
-                }
-
-                //check for transition to next state
-                if (ctx.canComputeCentroid(ctx)) {
-                    ctx.state = ctx.states.circleLikely;
-                }
-            },
             /**
              * Gesture ended.
              * @param {CircleGestureRecognizer} ctx - Context. 
@@ -429,10 +407,9 @@ export default class CircleGestureRecognizer {
      * Check if all conditions are met for transitioning from "possibleCircle"
      * to "circleLikely"
      * @returns {boolean}
-     * @todo
      */
-    shouldPromotePossibleCircle() {
-        return false;
+    #shouldPromotePossibleCircle() {
+        return this.#canComputeCentroid();
     }
 
     /**
@@ -506,8 +483,8 @@ export default class CircleGestureRecognizer {
      * @param {CircleGestureRecognizer} ctx - Context.
      * @returns {boolean} 
      */
-    canComputeCentroid(ctx) {
-        return ctx.log.getTotalTurnDegrees() > ctx.thresholds.centroidCalcAngleAccum
+    #canComputeCentroid() {
+        return this.log.getTotalTurnDegrees() > this.thresholds.centroidCalcAngleAccum;
     }
 
     /**
