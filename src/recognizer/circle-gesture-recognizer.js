@@ -71,6 +71,10 @@ export default class CircleGestureRecognizer {
     /***************************************************************************
      * Mapping Registries
      **************************************************************************/
+    guardHandlers = {
+        shouldLeaveTooEarly: (event) => this.#shouldLeaveTooEarly(event),
+    };
+
     updateHandlers = {
         addPoint: (x, y, t) => this.#addPoint(x, y, t)
     };
@@ -119,7 +123,7 @@ export default class CircleGestureRecognizer {
                         update: "addPoint",
                         transitions: [
                             {
-                                guard: "todo: shouldLeaveTooEarly",
+                                guard: "shouldLeaveTooEarly",
                                 target: "possibleCircle",
                             },
                             {
@@ -432,10 +436,8 @@ export default class CircleGestureRecognizer {
      * @returns {boolean}
      * @todo
      */
-    shouldLeaveTooEarly() {
-        //check to see if enough samples have been collected and/or
-        //if enough
-        return false;
+    #shouldLeaveTooEarly() {
+        return this.log.isReadyForClassification();
     }
 
     /**
@@ -478,12 +480,11 @@ export default class CircleGestureRecognizer {
     }
 
     /**
-     * Checks if gesture is within the minimum allowed diameter.
-     * Note this check is expected to be used for the transition out of tooEarly.
-     * @param {CircleGestureRecognizer} ctx - Context.
+     * Add a point to the current gesture.
+     * @param {number} x - x-coordinate.
+     * @param {number} y - y-coordinate. 
+     * @param {number} t - timestamp.
      */
-    isWithinStartingCircle(ctx) {
-        return ctx.log.isReadyForClassification();
     #addPoint(x, y, t) {
         this.state.addPoint?.(this, x, y, t);
     }
