@@ -80,7 +80,10 @@ export default class CircleGestureRecognizer {
         addPoint: (x, y, t) => this.#addPoint(x, y, t)
     };
 
+    effectHandlers = {
         getPossibleCircleRejectReason: () => this.#getPossibleCircleRejectReason(),
+    };
+
     /**
      * State Machine Definition
      * As the gesture continues, points get added and the state machine follows
