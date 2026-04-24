@@ -40,6 +40,12 @@ export default class CircleGestureRecognizer {
      * @param {Object} payload - the payload for the call
      * @returns {null}
      * @todo Build logic
+     * 
+     * | type       | payload
+     * | ---------- | -------------------------------------------------------- |
+     * | START      | @type {PointSample} {x, y, t} |
+     * | ADD_POINT  | @type {PointSample} {x, y, t} |
+     * | END        | @type {PointSample} {x, y, t} |
      */
     send(type, payload={}) {
         const currentState = this.smDefinition[this.state];
@@ -61,6 +67,13 @@ export default class CircleGestureRecognizer {
         }
 
     }
+
+    /***************************************************************************
+     * Mapping Registries
+     **************************************************************************/
+    updateHandlers = {
+        addPoint: (x, y, t) => this.#addPoint(x, y, t)
+    };
 
     /**
      * State Machine Definition
@@ -103,7 +116,7 @@ export default class CircleGestureRecognizer {
             tooEarly: {
                 on: {
                     POINT_ADDED: {
-                        update: "todo: add point",
+                        update: "addPoint",
                         transitions: [
                             {
                                 guard: "todo: shouldLeaveTooEarly",
@@ -391,15 +404,7 @@ export default class CircleGestureRecognizer {
         this.state.start?.(this, point);
     }
 
-    /**
-     * Add a point to the current gesture.
-     * @param {number} x - x-coordinate.
-     * @param {number} y - y-coordinate. 
-     * @param {number} t - timestamp.
-     */
-    addPoint(x, y, t) {
-        this.state.addPoint?.(this, x, y, t);
-    }
+    
 
     /**
      * Signal that the gesture has ended.
@@ -472,9 +477,6 @@ export default class CircleGestureRecognizer {
         return false;
     }
 
-
-
-
     /**
      * Checks if gesture is within the minimum allowed diameter.
      * Note this check is expected to be used for the transition out of tooEarly.
@@ -482,7 +484,11 @@ export default class CircleGestureRecognizer {
      */
     isWithinStartingCircle(ctx) {
         return ctx.log.isReadyForClassification();
+    #addPoint(x, y, t) {
+        this.state.addPoint?.(this, x, y, t);
     }
+
+
 
     /**
      * Checks if gesture has accumulated enough angle/turn for the 
