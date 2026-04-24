@@ -73,12 +73,14 @@ export default class CircleGestureRecognizer {
      **************************************************************************/
     guardHandlers = {
         shouldLeaveTooEarly: (event) => this.#shouldLeaveTooEarly(event),
+        shouldRejectPossibleCircle: (event) => this.#shouldRejectPossibleCircle(event),
     };
 
     updateHandlers = {
         addPoint: (x, y, t) => this.#addPoint(x, y, t)
     };
 
+        getPossibleCircleRejectReason: () => this.#getPossibleCircleRejectReason(),
     /**
      * State Machine Definition
      * As the gesture continues, points get added and the state machine follows
@@ -149,9 +151,9 @@ export default class CircleGestureRecognizer {
                         update: "todo: add point",
                         transitions: [
                             {
-                                guard: "todo: call shouldRejectPossibleCircle()",
+                                guard: "shouldRejectPossibleCircle",
                                 effects: [
-                                    "todo: set rejection reason",
+                                    "getPossibleCircleRejectReason",
                                     "todo: report circle rejected"
                                 ],
                                 target: "idle"
@@ -441,13 +443,12 @@ export default class CircleGestureRecognizer {
     }
 
     /**
-     * Check if all conditions are met for rejecting the gesture as a circular 
+     * Check if conditions are met for rejecting the gesture as circular 
      * from the "possibleCircle" state.
      * @returns {boolean}
-     * @todo
      */
-    shouldRejectPossibleCircle() {
-        return false;
+    #shouldRejectPossibleCircle() {
+        return this.#isTooBig() || this.#hasTooManyBacktracks();
     }
 
     /**
@@ -489,6 +490,38 @@ export default class CircleGestureRecognizer {
         this.state.addPoint?.(this, x, y, t);
     }
 
+    /***************************************************************************
+     * Reason checkers
+     **************************************************************************/
+    /**
+     * @typedef {Object} RejectionReason
+     * @property {string} code - Stable machine-readable reason code.
+     * @property {string} message - Human-readable rejection message.
+     */
+
+    /**
+     * Determines why the gesture should be rejected.
+     * @returns {RejectionReason} 
+     * @throws {Error} If no rejection reason is available.
+     */
+    #getPossibleCircleRejectReason() {
+        if(this.#isTooBig()) {
+            return { 
+                code: "tooBig", 
+                message: "Gesture is too big"
+            };
+        }
+        if(this.#hasTooManyBacktracks()) {
+            return { 
+                code: "tooManyReversals", 
+                message: "Gesture has too many reversals"
+            }
+        }
+
+        throw new Error(
+            "Expected a possibleCircle rejection reason, but none was found."
+        );
+    }
 
 
     /**
@@ -505,23 +538,22 @@ export default class CircleGestureRecognizer {
 
     /**
      * Checks if the gesture has exceeded the maximum allowed diameter.
-     * @param {CircleGestureRecognizer} ctx 
      * @returns {boolean}
      */
-    isTooBig(ctx) {
-        const dx = ctx.log.getBoundingWidth();
-        const dy = ctx.log.getBoundingHeight();
-        const max = ctx.thresholds.maxDiameter
+    #isTooBig() {
+        const dx = this.log.getBoundingWidth();
+        const dy = this.log.getBoundingHeight();
+        const max = this.thresholds.maxDiameter
         return dx > max || dy > max;
     }
 
     /**
-     * 
+     * Checks to see if the gesture has had too many reversals/backtracks.
      * @param {CircleGestureRecognizer} ctx 
      */
-    hasTooManyBacktracks(ctx) {
-        const backtrackCount = ctx.log.directionChangeCount;
-        return backtrackCount > ctx.thresholds.maxReversals;
+    #hasTooManyBacktracks() {
+        const backtrackCount = this.log.directionChangeCount;
+        return backtrackCount > this.thresholds.maxReversals;
     }
 
     /**
