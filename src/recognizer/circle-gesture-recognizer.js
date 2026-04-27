@@ -75,6 +75,8 @@ export default class CircleGestureRecognizer {
         shouldLeaveTooEarly: () => this.#shouldLeaveTooEarly(),
         shouldRejectPossibleCircle: () => this.#shouldRejectPossibleCircle(),
         shouldPromotePossibleCircle: () => this.#shouldPromotePossibleCircle(),
+//        shouldRejectCircleLikely: (event) => this.#shouldRejectCircleLikely(event),
+//        meetsAllCircularityChecks: (event) => this.#meetsAllCircularityChecks(event)
     };
 
     updateHandlers = {
@@ -82,6 +84,7 @@ export default class CircleGestureRecognizer {
     };
 
     effectHandlers = {
+        initializeSampleLog: (x, y, t) => this.#initializeSampleLog(x, y, t),
         getPossibleCircleRejectReason: () => this.#getPossibleCircleRejectReason(),
     };
 
@@ -113,7 +116,7 @@ export default class CircleGestureRecognizer {
             idle: { 
                 on: {
                     START: {
-                        effects: ["todo: initialize sampleLog"],
+                        effects: ["initializeSampleLog"],
                         target: "tooEarly"
                     }
                 }
@@ -385,6 +388,28 @@ export default class CircleGestureRecognizer {
      * Internal methods & helpers
      **************************************************************************/
 
+
+    /**
+     * Starts gesture sampling with a new SampleLog (this.log).
+     * @param {number} x - x-coordinate for first point.
+     * @param {number} y - y-coordinate for first point.
+     * @param {number} t - timestamp.
+     */
+    #initializeSampleLog(x, y, t) {
+        const options = {
+            minSamples: this.thresholds.minSamples,
+            minDistance: this.thresholds.minDistance
+        }
+        const initialPoint = new PointSample(x, y, t);
+
+        this.log = new SampleLog(
+            initialPoint, 
+            this.thresholds.dejitterDistance,
+            options
+        );
+    }
+
+
     /**
      * Check if all conditions are met for transitioning from "tooEarly" 
      * to "possibleCircle" state.
@@ -413,7 +438,7 @@ export default class CircleGestureRecognizer {
     }
 
     /**
-     * Check if all conditions are met for rejecting the gesture as a circular 
+     * Check if all conditions are met for rejecting the gesture as circular 
      * from the "circleLikely" state.
      * @returns {boolean}
      * @todo
@@ -451,7 +476,7 @@ export default class CircleGestureRecognizer {
      */
 
     /**
-     * Determines why the gesture should be rejected.
+     * Determines why the gesture should be rejected in the possibleCircle state.
      * @returns {RejectionReason} 
      * @throws {Error} If no rejection reason is available.
      */
@@ -471,6 +496,18 @@ export default class CircleGestureRecognizer {
 
         throw new Error(
             "Expected a possibleCircle rejection reason, but none was found."
+        );
+    }
+
+    /**
+     * Determines why the gesture should be rejected in the circleLikely state.
+     * @returns {RejectionReason} 
+     * @throws {Error} If no rejection reason is available.
+     * @todo
+     */
+    #getCircleLikelyRejectReason() {
+        throw new Error(
+            "Expected a circleLikely rejection reason, but none was found."
         );
     }
 
