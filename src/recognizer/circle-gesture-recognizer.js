@@ -569,7 +569,7 @@ export default class CircleGestureRecognizer {
     #getRejectionReasonFor(state, phase) {
         const rules = CircleGestureRecognizer.#REJECTION_RULES[state]?.[phase];
 
-        if (!rule) {
+        if (!rules) {
             throw new Error(`No rejection rules for ${state}.${phase}`);
         }
 
