@@ -1,6 +1,21 @@
 import PointSample from "../model/point-sample";
 import SampleLog from "../model/sample-log.js";
 
+/**
+ * @typedef {Object} RejectionReason
+ * @property {string} code - Stable machine-readable reason code.
+ * @property {string} message - Human-readable rejection message.
+ */
+
+/**
+ * A single rejection rule.
+ * @typedef {Object} RejectionRule
+ * @property {(self: CircleGestureRecognizer) => boolean} test
+ *   Predicate that returns true when the rule should fire.
+ * @property {RejectionReason} reason
+ *   The rejection payload returned when the rule matches.
+ */
+
 
 export default class CircleGestureRecognizer {
     static POSSIBLE_STATES = [
@@ -11,6 +26,74 @@ export default class CircleGestureRecognizer {
         "circleComplete", 
         "notCircle"
     ];
+
+    /**
+     * Lookup table of rejection reasons.
+     * @type {RejectionReason}
+     * @private
+     * @static
+     */
+    static #REASONS = {
+        tooBig: {
+            code: "tooBig",
+            message: "Gesture is too big"
+        },
+        tooManyReversals: {
+            code: "tooManyReversals",
+            message: "Gesture has too many reversals"
+        },
+        unstableRadius: {
+            code: "unstableRadius",
+            message: "Radius deviation too high"
+        },
+        notEnoughSweep: {
+            code: "notEnoughSweep",
+            message: "Not enough angular sweep"
+        }
+    };
+
+    /**
+     * Declarative rejection rules organized by state and phase.
+     *
+     * Structure:
+     * {
+     *   [state: string]: {
+     *     ADD: RejectionRule[],
+     *     END: RejectionRule[]
+     *   }
+     * }
+     *
+     * @type {Object<string, {ADD: RejectionRule[], END: RejectionRule[]}>}
+     * @private
+     * @static
+     */
+    static #REJECTION_RULES = {
+        possibleCircle: {
+            ADD: [
+                { test: s => s.#isTooBig(), reason: CircleGestureRecognizer.#REASONS.tooBig },
+                { test: s => s.#hasTooManyBacktracks(), reason: CircleGestureRecognizer.#REASONS.tooManyReversals }
+            ],
+            END: [
+                { test: s => s.#isTooBig(), reason: CircleGestureRecognizer.#REASONS.tooBig },
+                { test: s => s.#hasTooManyBacktracks(), reason: CircleGestureRecognizer.#REASONS.tooManyReversals }
+            ]
+        },
+
+        circleLikely: {
+            ADD: [
+                { test: s => s.#isTooBig(), reason: CircleGestureRecognizer.#REASONS.tooBig },
+                { test: s => s.#hasTooManyBacktracks(), reason: CircleGestureRecognizer.#REASONS.tooManyReversals },
+                { test: s => s.#radiusDeviationTooHigh(), reason: CircleGestureRecognizer.#REASONS.unstableRadius }
+            ],
+            END: [
+                { test: s => s.#isTooBig(), reason: CircleGestureRecognizer.#REASONS.tooBig },
+                { test: s => s.#hasTooManyBacktracks(), reason: CircleGestureRecognizer.#REASONS.tooManyReversals },
+                { test: s => s.#radiusDeviationTooHigh(), reason: CircleGestureRecognizer.#REASONS.unstableRadius },
+                { test: s => !s.#hasCompleteAngularSweep(), reason: CircleGestureRecognizer.#REASONS.notEnoughSweep }
+            ]
+        }
+    };
+
 
 
     /**
@@ -85,7 +168,7 @@ export default class CircleGestureRecognizer {
 
     effectHandlers = {
         initializeSampleLog: (x, y, t) => this.#initializeSampleLog(x, y, t),
-        getPossibleCircleRejectReason: () => this.#getPossibleCircleRejectReason(),
+        getRejectionReason: (state, phase) => this.#getRejectionReasonFor(state, phase),
     };
 
     /**
@@ -160,7 +243,7 @@ export default class CircleGestureRecognizer {
                             {
                                 guard: "shouldRejectPossibleCircle",
                                 effects: [
-                                    "getPossibleCircleRejectReason",
+                                    "getRejectionReason",
                                     "todo: report circle rejected"
                                 ],
                                 target: "idle"
@@ -194,7 +277,7 @@ export default class CircleGestureRecognizer {
                             {
                                 guard: "shouldRejectCircleLikely",
                                 effects: [
-                                    "todo: set rejection reason",
+                                    "getRejectionReason",
                                     "todo: report circle rejected"
                                 ],
                                 target: "idle"
@@ -472,49 +555,31 @@ export default class CircleGestureRecognizer {
         this.state.addPoint?.(this, x, y, t);
     }
 
-    /***************************************************************************
-     * Reason checkers
-     **************************************************************************/
-    /**
-     * @typedef {Object} RejectionReason
-     * @property {string} code - Stable machine-readable reason code.
-     * @property {string} message - Human-readable rejection message.
-     */
 
+    
+    
+    
     /**
-     * Determines why the gesture should be rejected in the possibleCircle state.
+     * Determines why the gesture was rejected (as not circular).
+     * @param {string} state - the state machine's state
+     * @param {"ADD"|"END"} phase - the phase of gesture handling
      * @returns {RejectionReason} 
-     * @throws {Error} If no rejection reason is available.
+     * @throws {Error} If no state or rejection reason is available.
      */
-    #getPossibleCircleRejectReason() {
-        if(this.#isTooBig()) {
-            return { 
-                code: "tooBig", 
-                message: "Gesture is too big"
-            };
+    #getRejectionReasonFor(state, phase) {
+        const rules = CircleGestureRecognizer.#REJECTION_RULES[state]?.[phase];
+
+        if (!rule) {
+            throw new Error(`No rejection rules for ${state}.${phase}`);
         }
-        if(this.#hasTooManyBacktracks()) {
-            return { 
-                code: "tooManyReversals", 
-                message: "Gesture has too many reversals"
+
+        for (const rule of rules) {
+            if (rule.test(this)) {
+                return rule.reason;
             }
         }
 
-        throw new Error(
-            "Expected a possibleCircle rejection reason, but none was found."
-        );
-    }
-
-    /**
-     * Determines why the gesture should be rejected in the circleLikely state.
-     * @returns {RejectionReason} 
-     * @throws {Error} If no rejection reason is available.
-     * @todo
-     */
-    #getCircleLikelyRejectReason() {
-        throw new Error(
-            "Expected a circleLikely rejection reason, but none was found."
-        );
+        throw new Error(`Expected a rejection reason for ${state}.${phase}`);
     }
 
 
@@ -549,6 +614,26 @@ export default class CircleGestureRecognizer {
         const backtrackCount = this.log.directionChangeCount;
         return backtrackCount > this.thresholds.maxReversals;
     }
+
+    /**
+     * TODO: Checks to see if the gesture is too far out of round.
+     * @returns {boolean}
+     * @todo build logic
+     */
+    #radiusDeviationTooHigh() {
+        return false;
+    }
+
+    /**
+     * TODO: Checks to see if the gesture has completed enough angular sweep
+     * to potentially be considered a circle.
+     * @returns {boolean}
+     * @todo build logic
+     */
+    #hasCompleteAngularSweep() {
+        return false;
+    }
+
 
     /**
      * Change state to notCircle.
