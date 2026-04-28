@@ -75,7 +75,7 @@ export default class CircleGestureRecognizer {
         shouldLeaveTooEarly: () => this.#shouldLeaveTooEarly(),
         shouldRejectPossibleCircle: () => this.#shouldRejectPossibleCircle(),
         shouldPromotePossibleCircle: () => this.#shouldPromotePossibleCircle(),
-//        shouldRejectCircleLikely: (event) => this.#shouldRejectCircleLikely(event),
+        shouldRejectCircleLikely: () => this.#shouldRejectCircleLikely(),
 //        meetsAllCircularityChecks: (event) => this.#meetsAllCircularityChecks(event)
     };
 
@@ -192,7 +192,7 @@ export default class CircleGestureRecognizer {
                         update: "todo: add point",
                         transitions: [
                             {
-                                guard: "todo: call shouldRejectCircleLikely()",
+                                guard: "shouldRejectCircleLikely",
                                 effects: [
                                     "todo: set rejection reason",
                                     "todo: report circle rejected"
@@ -443,8 +443,14 @@ export default class CircleGestureRecognizer {
      * @returns {boolean}
      * @todo
      */
-    shouldRejectCircleLikely() {
-        return false;
+    #shouldRejectCircleLikely() {
+        criteria = [];
+        criteria.push(this.#isTooBig());
+        criteria.push(this.#hasTooManyBacktracks());
+
+        //todo: radius stability and other checks?
+
+        return criteria.some(Boolean);
     }
 
     /**
