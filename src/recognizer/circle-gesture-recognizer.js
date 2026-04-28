@@ -238,7 +238,7 @@ export default class CircleGestureRecognizer {
             possibleCircle: {
                 on: {
                     POINT_ADDED: {
-                        update: "todo: add point",
+                        update: "addPoint",
                         transitions: [
                             {
                                 guard: "shouldRejectPossibleCircle",
@@ -272,7 +272,7 @@ export default class CircleGestureRecognizer {
             circleLikely: {
                 on: {
                     POINT_ADDED: {
-                        update: "todo: add point",
+                        update: "addPoint",
                         transitions: [
                             {
                                 guard: "shouldRejectCircleLikely",
