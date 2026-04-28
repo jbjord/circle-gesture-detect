@@ -158,7 +158,6 @@ export default class CircleGestureRecognizer {
         shouldLeaveTooEarly: () => this.#shouldLeaveTooEarly(),
         shouldRejectCircle: (state, phase) => this.#shouldRejectCircle(state, phase),
         shouldPromotePossibleCircle: () => this.#shouldPromotePossibleCircle(),
-        shouldRejectCircleLikely: () => this.#shouldRejectCircleLikely(),
 //        meetsAllCircularityChecks: (event) => this.#meetsAllCircularityChecks(event)
     };
 
