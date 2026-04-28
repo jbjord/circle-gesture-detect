@@ -156,7 +156,7 @@ export default class CircleGestureRecognizer {
      **************************************************************************/
     guardHandlers = {
         shouldLeaveTooEarly: () => this.#shouldLeaveTooEarly(),
-        shouldRejectPossibleCircle: () => this.#shouldRejectPossibleCircle(),
+        shouldRejectCircle: (state, phase) => this.#shouldRejectCircle(state, phase),
         shouldPromotePossibleCircle: () => this.#shouldPromotePossibleCircle(),
         shouldRejectCircleLikely: () => this.#shouldRejectCircleLikely(),
 //        meetsAllCircularityChecks: (event) => this.#meetsAllCircularityChecks(event)
@@ -241,7 +241,7 @@ export default class CircleGestureRecognizer {
                         update: "addPoint",
                         transitions: [
                             {
-                                guard: "shouldRejectPossibleCircle",
+                                guard: "shouldRejectCircle",
                                 effects: [
                                     "getRejectionReason",
                                     "todo: report circle rejected"
@@ -275,7 +275,7 @@ export default class CircleGestureRecognizer {
                         update: "addPoint",
                         transitions: [
                             {
-                                guard: "shouldRejectCircleLikely",
+                                guard: "shouldRejectCircle",
                                 effects: [
                                     "getRejectionReason",
                                     "todo: report circle rejected"
@@ -503,37 +503,12 @@ export default class CircleGestureRecognizer {
     }
 
     /**
-     * Check if conditions are met for rejecting the gesture as circular 
-     * from the "possibleCircle" state.
-     * @returns {boolean}
-     */
-    #shouldRejectPossibleCircle() {
-        return this.#isTooBig() || this.#hasTooManyBacktracks();
-    }
-
-    /**
      * Check if all conditions are met for transitioning from "possibleCircle"
      * to "circleLikely"
      * @returns {boolean}
      */
     #shouldPromotePossibleCircle() {
         return this.#canComputeCentroid();
-    }
-
-    /**
-     * Check if all conditions are met for rejecting the gesture as circular 
-     * from the "circleLikely" state.
-     * @returns {boolean}
-     * @todo
-     */
-    #shouldRejectCircleLikely() {
-        criteria = [];
-        criteria.push(this.#isTooBig());
-        criteria.push(this.#hasTooManyBacktracks());
-
-        //todo: radius stability and other checks?
-
-        return criteria.some(Boolean);
     }
 
     /**
@@ -555,8 +530,21 @@ export default class CircleGestureRecognizer {
         this.state.addPoint?.(this, x, y, t);
     }
 
+    /**
+     * Checks if any applicable condition is met that would cause a circle to 
+     * be rejected.
+     * @param {string} state - the state machine's state
+     * @param {"ADD"|"END"} phase phase - the phase of gesture handling
+     * @returns {boolean}
+     */
+    #shouldRejectCircle(state, phase) {
+        const rules = CircleGestureRecognizer.#REJECTION_RULES[state]?.[phase];
+        if (!rules) {
+            return false;
+        }
 
-    
+        return rules.some(rule => rule.test(this));
+    }
     
     
     /**
