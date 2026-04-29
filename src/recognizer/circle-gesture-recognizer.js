@@ -318,40 +318,6 @@ export default class CircleGestureRecognizer {
      * To be refactored into smDefinition
      */
     states = {
-        idle: {
-            /**
-             * Start sampling
-             * @param {CircleGestureRecognizer} ctx - Context
-             * @param {PointSample} point - Starting point.
-             */
-            start(ctx, point) {
-                const options = {
-                    minSamples: ctx.thresholds.minSamples,
-                    minDistance: ctx.thresholds.minDistance
-                }
-                ctx.log = new SampleLog(
-                    point, 
-                    ctx.thresholds.dejitterDistance,
-                    options
-                );
-                ctx.state = ctx.states.tooEarly;
-            }
-        },
-
-
-        /**
-         * "possibleCircle": there are not yet enough points to calculate a
-         * stable centroid.
-         */
-        possibleCircle: {
-            /**
-             * Gesture ended.
-             * @param {CircleGestureRecognizer} ctx - Context. 
-             * @param {string} msg - Message why gesture ended.
-             */
-            end(ctx, msg) {
-                ctx.#toNotCircle(msg);
-            }
 
         /**
          * "circleLikely": enough points have been collected to compare added
