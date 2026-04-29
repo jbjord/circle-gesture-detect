@@ -162,12 +162,14 @@ export default class CircleGestureRecognizer {
     };
 
     updateHandlers = {
-        addPoint: (x, y, t) => this.#addPoint(x, y, t)
+        addPoint: (sample) => this.#addPoint(sample)
     };
 
     effectHandlers = {
-        initializeSampleLog: (x, y, t) => this.#initializeSampleLog(x, y, t),
+        initializeSampleLog: (sample) => this.#initializeSampleLog(sample),
         getRejectionReason: (state, phase) => this.#getRejectionReasonFor(state, phase),
+//        reportReject: (event) => this.#reportReject(event),
+//        reportCircleDetected: (event) => this.#reportCircleDetected(event)
     };
 
     /**
@@ -350,7 +352,6 @@ export default class CircleGestureRecognizer {
             end(ctx, msg) {
                 ctx.#toNotCircle(msg);
             }
-        },
 
         /**
          * "circleLikely": enough points have been collected to compare added
@@ -473,16 +474,13 @@ export default class CircleGestureRecognizer {
 
     /**
      * Starts gesture sampling with a new SampleLog (this.log).
-     * @param {number} x - x-coordinate for first point.
-     * @param {number} y - y-coordinate for first point.
-     * @param {number} t - timestamp.
+     * @param {PointSample} initialPoint
      */
-    #initializeSampleLog(x, y, t) {
+    #initializeSampleLog(initialPoint) {
         const options = {
             minSamples: this.thresholds.minSamples,
             minDistance: this.thresholds.minDistance
         }
-        const initialPoint = new PointSample(x, y, t);
 
         this.log = new SampleLog(
             initialPoint, 
@@ -521,12 +519,10 @@ export default class CircleGestureRecognizer {
 
     /**
      * Add a point to the current gesture.
-     * @param {number} x - x-coordinate.
-     * @param {number} y - y-coordinate. 
-     * @param {number} t - timestamp.
+     * @param {PointSample} sample
      */
-    #addPoint(x, y, t) {
-        this.state.addPoint?.(this, x, y, t);
+    #addPoint(sample) {
+        this.log.add?.(sample);
     }
 
     /**
