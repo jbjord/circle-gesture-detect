@@ -582,6 +582,16 @@ export default class CircleGestureRecognizer {
         return this.log.totalTurn >= this.thresholds.completeAngleAccum;
     }
 
+    /**
+     * Checks to see if the most recent/end point of the gesture is close
+     * enough to the starting point.
+     * @returns {boolean}
+     */
+    #meetsClosureDistance() {
+        const limit = this.thresholds.closureDistance;
+        return limit == null || this.log.distanceFromStart() <= limit;
+    }
+
 
     /**
      * Change state to notCircle.
