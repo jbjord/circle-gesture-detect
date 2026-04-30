@@ -498,7 +498,7 @@ export default class CircleGestureRecognizer {
      * @returns {boolean}
      */
     #hasCompleteAngularSweep() {
-        return this.log.totalTurn >= this.thresholds.completeAngleAccum;
+        return this.log.getTotalTurnDegrees() >= this.thresholds.completeAngleAccum;
     }
 
     /**
