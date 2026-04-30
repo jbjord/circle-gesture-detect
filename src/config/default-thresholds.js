@@ -6,9 +6,9 @@
  * subsequent point.
  * @property {number} minDiameter - Minimum diameter for a valid circle.
  * @property {number} maxDiameter - Maximum diameter for a valid circle.
- * @property {number} minSamples - Minimum number of samples required before 
+ * @property {number|null} minSamples - Minimum number of samples required before 
  * classification can begin. May be used alone or together with `minDistance`.
- * @property {number} minDistance - Minimum distance required before 
+ * @property {number|null} minDistance - Minimum distance required before 
  * classification can begin. May be used alone or together with `minSamples`.
  * @property {number} maxReversals - Maximum number of direction changes 
  * (clockwise <--> counterclockwise) allowed before rejecting gesture.
@@ -19,7 +19,7 @@
  * @property {number} completeAngleAccum
  *   Threshold of accumulated signed turn (in degrees) that can be considered
  *   as a complete circle.
- * @property {number} circularityTolerance
+ * @property {number|null} circularityTolerance
  *   Allowed variance in radius.
  * @property {number|null} closureDistance
  *   Maximum distance between start and end points in px
