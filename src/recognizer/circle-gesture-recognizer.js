@@ -574,13 +574,12 @@ export default class CircleGestureRecognizer {
     }
 
     /**
-     * TODO: Checks to see if the gesture has completed enough angular sweep
+     * Checks to see if the gesture has completed enough angular sweep
      * to potentially be considered a circle.
      * @returns {boolean}
-     * @todo build logic
      */
     #hasCompleteAngularSweep() {
-        return false;
+        return this.log.totalTurn >= this.thresholds.completeAngleAccum;
     }
 
 
