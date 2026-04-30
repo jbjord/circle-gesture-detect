@@ -20,10 +20,10 @@
  *   Threshold of accumulated signed turn (in degrees) that can be considered
  *   as a complete circle.
  * @property {number} circularityTolerance
+ *   Allowed variance in radius.
+ * @property {number|null} closureDistance
+ *   Maximum distance between start and end points in px
  * 
- * FUTURE: Consider adding
- * circularityTolerance - Allowed variance in radius.
- * closureDistance - Max distance between start/end to count as closed.
  * 
  * @description
  * Classification is intended to begin only after both `minSamples` and 
@@ -45,5 +45,6 @@ export const DEFAULT_THRESHOLDS = {
     maxReversals: 2,
     centroidCalcAngleAccum: 180,
     completeAngleAccum: 330,
-    circularityTolerance: 0.18
+    circularityTolerance: 0.18,
+    closureDistance: null
 };
