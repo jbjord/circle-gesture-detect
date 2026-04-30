@@ -160,7 +160,7 @@ export default class CircleGestureRecognizer {
         shouldLeaveTooEarly: () => this.#shouldLeaveTooEarly(),
         shouldRejectCircle: (state, phase) => this.#shouldRejectCircle(state, phase),
         shouldPromotePossibleCircle: () => this.#shouldPromotePossibleCircle(),
-//        meetsAllCircularityChecks: (event) => this.#meetsAllCircularityChecks(event)
+        meetsAllCircularityChecks: () => this.#meetsAllCircularityChecks()
     };
 
     updateHandlers = {
@@ -286,7 +286,7 @@ export default class CircleGestureRecognizer {
                                 target: "idle"
                             },
                             {
-                                guard: "todo: call shouldReportCircleEarly()",
+                                guard: "meetsAllCircularityChecks",
                                 effects: ["todo: report circle detected"],
                                 target: "idle",  
                             },
@@ -299,12 +299,15 @@ export default class CircleGestureRecognizer {
                     END: {
                         transitions: [
                             {
-                                guard: "todo: meetsAllCircularityChecks",
+                                guard: "meetsAllCircularityChecks",
                                 effects: ["todo: circle detected output"],
                                 target: "idle"
                             },
                             {
-                                effects: ["todo: report circle rejected and reason"],
+                                effects: [
+                                    "getRejectionReason",
+                                    "todo: report circle rejected and reason"
+                                ],
                                 target: "idle"
                             }
                         ]
@@ -477,15 +480,6 @@ export default class CircleGestureRecognizer {
     }
 
     /**
-     * Check if all conditions are met to detect a circle.
-     * @returns {boolean}
-     * @todo
-     */
-    shouldReportCircleEarly() {
-        return false;
-    }
-
-    /**
      * Add a point to the current gesture.
      * @param {PointSample} sample
      */
@@ -558,6 +552,18 @@ export default class CircleGestureRecognizer {
     }
 
     /**
+     * Checks if the gesture is too small to be considered a valid circle.
+     * Intended to be used when a gesture is finalized.
+     * @returns {boolean}
+     */
+    #isTooSmall() {
+        const dx = this.log.getBoundingWidth();
+        const dy = this.log.getBoundingHeight();
+        const min = this.thresholds.minDiameter
+        return dx <= min || dy <= min;
+    }
+
+    /**
      * Checks to see if the gesture has had too many reversals/backtracks.
      * @param {CircleGestureRecognizer} ctx 
      */
@@ -609,15 +615,19 @@ export default class CircleGestureRecognizer {
     }
 
     /**
-     * Checks all circularity measures.
-     * Note intended to be used when a gesture is completed.
-     * @param {CircleGestureRecognizer} ctx - Context.
+     * Checks all circularity measures to see if a circle gesture can be
+     * accepted right now (either during a gesture or at gesture end).
      * @returns {boolean}
-     * @todo Not yet implemented
      */
-    meetsAllCircularityChecks(ctx) {
-        console.warn("meetsAllCircularityChecks() not implemented.");
-        return false;
+    #meetsAllCircularityChecks() {
+        return (
+            !this.#isTooBig() &&
+            !this.#isTooSmall() &&
+            !this.#hasTooManyBacktracks() &&
+            !this.#radiusDeviationTooHigh() &&
+            this.#hasCompleteAngularSweep() &&
+            this.#meetsClosureDistance()
+        );
     }
 
     /**
