@@ -1,5 +1,6 @@
 import PointSample from "../model/point-sample";
 import SampleLog from "../model/sample-log.js";
+import CircleGestureThresholds from "../config/default-thresholds.js"
 
 /**
  * @typedef {Object} RejectionReason
@@ -101,6 +102,7 @@ export default class CircleGestureRecognizer {
      * @param {CircleGestureThresholds} thresholds 
      */
     constructor(thresholds) {
+        /**@type {CircleGestureThresholds} */
         this.thresholds = thresholds;
 
         /**@type {SampleLog|null} */
