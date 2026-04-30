@@ -341,13 +341,6 @@ export default class CircleGestureRecognizer {
         this.state.end?.(this, msg);
     }
     
-    isCircle() {
-        return this.state === this.states.circleComplete;
-    }
-
-    isNotCircle() {
-        return this.state === this.states.notCircle;
-    }
 
     /***************************************************************************
      * Internal methods & helpers
@@ -511,20 +504,6 @@ export default class CircleGestureRecognizer {
         return limit == null || this.log.distanceFromStart() <= limit;
     }
 
-
-    /**
-     * Change state to notCircle.
-     * Can happen from any state except idle.
-     * @param {string} [msg] - Message about why circle rejected.
-     */
-    #toNotCircle(msg = "") {
-        this.eventDetail = {
-            msg: msg
-        }
-
-        this.state = this.states.notCircle;
-    }
-
     /**
      * Checks all circularity measures to see if a circle gesture can be
      * accepted right now (either during a gesture or at gesture end).
@@ -596,27 +575,4 @@ export default class CircleGestureRecognizer {
 
     }
 
-    /**
-     * @todo
-     * @returns {boolean}
-     */
-    #looksRoughlyCircular() {
-        return true;
-    }
-
-    /**
-     * @todo
-     * @returns {boolean}
-     */
-    #stillLooksCircular() {
-        return true;
-    }
-
-    /**
-     * @todo
-     * @returns {boolean}
-     */
-    #circularEvidenceStrong() {
-        return true;
-    }
 }
