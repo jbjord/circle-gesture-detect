@@ -563,7 +563,7 @@ export default class CircleGestureRecognizer {
 
         const c = this.#computeCentroid(sample);
 
-        const radii = sample.map(pt => Math.hypot(pt.x - c.x, pt.y - c.y));
+        const radii = this.#computeRadii(c, sample);
 
         const mean = radii.reduce((a, b) => a + b, 0) / radii.length;
         if (mean === 0) return Infinity;
@@ -575,4 +575,18 @@ export default class CircleGestureRecognizer {
 
     }
 
+    /**
+     * Computes distance of each point from a centroid.
+     * @param {{x: number, y: number}} - xy-coordinate of centroid.
+     * @param {PointSample[]} points - array of PointSamples, defaults to 
+     * full gesture log (this.log.log) 
+     * @returns {number[]} distances between centroid & each point in points.
+     */
+    #computeRadii(centroid, points) {
+        if (!points) {
+            points = this.log.log;
+        }
+
+        return points.map(pt => Math.hypot(pt.x - centroid.x, pt.y - centroid.y));
+    }
 }
