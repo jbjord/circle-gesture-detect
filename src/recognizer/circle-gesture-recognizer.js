@@ -452,7 +452,6 @@ export default class CircleGestureRecognizer {
      * circle centroid to be considered stable when calculated.
      * Note this check is expected to be used for the transition out of
      * possible circle.
-     * @param {CircleGestureRecognizer} ctx - Context.
      * @returns {boolean} 
      */
     #canComputeCentroid() {
@@ -484,7 +483,6 @@ export default class CircleGestureRecognizer {
 
     /**
      * Checks to see if the gesture has had too many reversals/backtracks.
-     * @param {CircleGestureRecognizer} ctx 
      */
     #hasTooManyBacktracks() {
         const backtrackCount = this.log.directionChangeCount;
@@ -566,7 +564,7 @@ export default class CircleGestureRecognizer {
      * Calculates normalized radius deviation of points from their mean centroid.
      * Lower values indicate that the points lie at a consistent distance 
      * from the center.
-     * @param {PointSample[]} sample - array of point samples, defaults
+     * @param {PointSample[]} [sample] - array of point samples, defaults
      * to full gesture log (this.log.log).
      * @returns {number} - normalized standard deviation of the sample 
      * (stddev/mean radius)
@@ -592,7 +590,7 @@ export default class CircleGestureRecognizer {
 
     /**
      * Computes distance of each point from a centroid.
-     * @param {{x: number, y: number}} - xy-coordinate of centroid.
+     * @param {{x: number, y: number}} centroid - xy-coordinate of centroid.
      * @param {PointSample[]} points - array of PointSamples, defaults to 
      * full gesture log (this.log.log) 
      * @returns {number[]} distances between centroid & each point in points.
