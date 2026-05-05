@@ -147,34 +147,25 @@ export default class CircleGestureRecognizer {
      * Send information to the State Machine to take action and change state
      * as appropriate.
      * @param {"START"|"POINT_ADDED"|"END"} type - the type of call 
-     * @param {Object} payload - the payload for the call
-     * @returns {null}
+     * @param {{ point?: PointSample }} payload
+     * @returns {CircleReport|CircleRejectedReport|null}
      * @todo Build logic
-     * 
-     * | type         | payload
-     * | ------------ | ------------------------------------------------------ |
-     * | START        | @type {PointSample} {x, y, t} |
-     * | POINT_ADDED  | @type {PointSample} {x, y, t} |
-     * | END          | @type {PointSample} {x, y, t} |
      */
     send(type, payload={}) {
-        const currentState = this.smDefinition[this.state];
-        const transition = currentState?.on?.[type];
-        if (!transition) return;
+        const stateDef = this.smDefinition.states[this.state];
+        const config = statDef?.on?.[type];
+        if (!config) return null;
 
-        const choices = Array.isArray(transition) ? transition : [transition];
+       
+        //todo
+        //state machine runner
+        //1. receive current state + event (above)
+        //2. apply event-level update if appropriate
+        //3. select the first matching transition by guard
+        //4. gather/call any declared effects from that transition
+        //5. return info about state, changed, effects
 
-        for (const t of choices) {
-            if (!t.guard || t.guard(this, payload)) {
-                //todo
-                //state machine runner
-                //1. receive current state + event (above)
-                //2. apply event-level update if appropriate
-                //3. select the first matching transition by guard
-                //4. gather/call any declared effects from that transition
-                //5. return info about state, changed, effects
-            }
-        }
+        return null;
 
     }
 
