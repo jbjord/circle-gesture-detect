@@ -652,6 +652,7 @@ export default class CircleGestureRecognizer {
         return {
             decision: "rejectCircle",
             state,
+            circleStats: this.#getCircleStats(),
             reason: this.#getRejectionReasonFor(state, phase),
             log: this.log
         }
