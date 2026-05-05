@@ -58,14 +58,12 @@ export default class CircleGestureRecognizer {
         "idle",
         "tooEarly",
         "possibleCircle", 
-        "circleLikely", 
-        "circleComplete", 
-        "notCircle"
+        "circleLikely"
     ];
 
     /**
      * Lookup table of rejection reasons.
-     * @type {RejectionReason}
+     * @type {Object<string, RejectionReason>}
      * @private
      * @static
      */
