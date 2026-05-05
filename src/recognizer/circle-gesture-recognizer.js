@@ -142,15 +142,7 @@ export default class CircleGestureRecognizer {
 
         /**@type {SampleLog|null} */
         this.log = null
-        this.state = "this.states.idle";
-        //FUTURE: this.state = "idle";
-
-        /**
-         * Details for an event to be dispatched.
-         * Will be populated when gesture is definitely detected.
-         * @type {object} - details to publish along with the event.
-         */
-        this.eventDetail = {};
+        this.state = "idle";
     }
 
     /**
