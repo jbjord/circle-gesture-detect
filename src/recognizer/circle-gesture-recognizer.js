@@ -237,8 +237,9 @@ export default class CircleGestureRecognizer {
             idle: { 
                 on: {
                     START: {
-                        effects: ["initializeSampleLog"],
-                        target: "tooEarly"
+                        update: "initializeSampleLog",
+                        target: "tooEarly",
+                        report: "pending"
                     }
                 }
             },
@@ -255,6 +256,7 @@ export default class CircleGestureRecognizer {
                             {
                                 guard: "shouldLeaveTooEarly",
                                 target: "possibleCircle",
+                                report: "pending"
                             },
                             {
                                 target: null
@@ -263,8 +265,8 @@ export default class CircleGestureRecognizer {
                         
                     },
                     END: {
-                        effects: ["report Reject 'too little evidence'"],
-                        target: "idle"
+                        target: "idle",
+                        report: "reject"
                     }
                 }
             },
@@ -280,15 +282,13 @@ export default class CircleGestureRecognizer {
                         transitions: [
                             {
                                 guard: "shouldRejectCircle",
-                                effects: [
-                                    "getRejectionReason",
-                                    "todo: report circle rejected"
-                                ],
-                                target: "idle"
+                                target: "idle",
+                                report: "reject"
                             },
                             {
                                 guard: "shouldPromotePossibleCircle",
-                                target: "circleLikely"  
+                                target: "circleLikely",
+                                report: "pending"
                             },
                             {
                                 target: null
@@ -297,8 +297,8 @@ export default class CircleGestureRecognizer {
                         
                     },
                     END: {
-                        effects: ["todo: emit event with reason 'no stable centroid'"],
-                        target: "idle"
+                        target: "idle",
+                        report: "reject"
                     }
                 }
             },
@@ -314,16 +314,13 @@ export default class CircleGestureRecognizer {
                         transitions: [
                             {
                                 guard: "shouldRejectCircle",
-                                effects: [
-                                    "getRejectionReason",
-                                    "todo: report circle rejected"
-                                ],
-                                target: "idle"
+                                target: "idle",
+                                report: "reject"
                             },
                             {
                                 guard: "meetsAllCircularityChecks",
-                                effects: ["todo: report circle detected"],
-                                target: "idle",  
+                                target: "idle",
+                                report: "accept"
                             },
                             {
                                 target: null
@@ -335,15 +332,12 @@ export default class CircleGestureRecognizer {
                         transitions: [
                             {
                                 guard: "meetsAllCircularityChecks",
-                                effects: ["todo: circle detected output"],
-                                target: "idle"
+                                target: "idle",
+                                report: "accept"
                             },
                             {
-                                effects: [
-                                    "getRejectionReason",
-                                    "todo: report circle rejected and reason"
-                                ],
-                                target: "idle"
+                                target: "idle",
+                                report: "reject"
                             }
                         ]
                     }
