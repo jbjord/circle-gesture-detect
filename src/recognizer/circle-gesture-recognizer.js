@@ -17,6 +17,41 @@ import CircleGestureThresholds from "../config/default-thresholds.js"
  *   The rejection payload returned when the rule matches.
  */
 
+/**
+ * @typedef {Object} CircleStats
+ * @property {number} duration - Gesture duration in the same time unit as samples.
+ * @property {number} radius - Mean radius of the gesture.
+ * @property {{x: number, y: number}|null} center - Estimated center, or null if not available.
+ * @property {number} height - Bounding box height.
+ * @property {number} width - Bounding box width.
+ * @property {number|null} circularity - Normalized radius deviation, or null if not available.
+ * @property {number} sweep - Total accumulated turn in degrees.
+ */
+
+/**
+ * @typedef {"acceptCircle"|"rejectCircle"|null} CircleDecision
+ */
+
+/**
+ * Report object describing the outcome or progress of a circle gesture.
+ * @typedef {Object} CircleReport
+ * @property {CircleDecision} decision - Current decision, or null if pending.
+ * @property {string|null} state - State machine state when report created, or null after acceptance.
+ * @property {CircleStats} circleStats - Aggregated statistics about the gesture.
+ * @property {SampleLog|null} log - Underlying gesture log, if available.
+ */
+
+/**
+ * Report object describing a rejected circle gesture.
+ * Extends CircleReport with a rejection reason.
+ * @typedef {Object} CircleRejectedReport
+ * @property {"rejectCircle"} decision
+ * @property {string} state
+ * @property {RejectionReason} reason
+ * @property {CircleStats} circleStats
+ * @property {SampleLog|null} log
+ */
+
 
 export default class CircleGestureRecognizer {
     static POSSIBLE_STATES = [
@@ -589,4 +624,66 @@ export default class CircleGestureRecognizer {
 
         return points.map(pt => Math.hypot(pt.x - centroid.x, pt.y - centroid.y));
     }
+
+    /**
+     * Returns a report for a continuing gesture (neither accepted nor rejected).
+     * @returns {CircleReport}
+     */
+    #getPendingCircleReport() {
+        return {
+            decision: null,
+            state: this.state,
+            circleStats: this.#getCircleStats(),
+            log: this.log
+        }
+    }
+
+    /**
+     * Returns a report for circle gesture acceptance.
+     * @returns {CircleReport}
+     */
+    #getCircleAcceptedReport() {
+        return {
+            decision: "acceptCircle",
+            state: null,
+            circleStats: this.#getCircleStats(),
+            log: this.log
+        }
+    }
+
+    /**
+     * Returns object for reporting circle gesture rejection.
+     * @param {"idle"|"tooEarly"|"possibleCircle"|"circleLikely"} state 
+     * @param {"ADD"|"END"} phase 
+     * @returns {CircleRejectedReport}
+     */
+    #getCircleRejectedReport(state, phase) {
+        return {
+            decision: "rejectCircle",
+            state,
+            reason: this.#getRejectionReasonFor(state, phase),
+            log: this.log
+        }
+    }
+
+    /**
+     * Returns object for reporting circle statistics.
+     * @returns {CircleStats}
+     */
+    #getCircleStats() {
+        const canCalculate = this.#canComputeCentroid();
+        const radii = this.#computeRadii();
+        const avgRadius = radii.reduce((sum, num) => sum + num, 0) / radii.length;
+
+        return {
+            duration: this.log.fromLast().t - this.log.start.t,
+            radius: avgRadius,
+            center: canCalculate ? this.#computeCentroid() : null, // {x, y}|null
+            height: this.log.getBoundingHeight(),
+            width: this.log.getBoundingWidth(),
+            circularity: canCalculate ? this.computeRadiusDeviation() : null,
+            sweep: this.log.getTotalTurnDegrees()
+        }
+    }
+
 }
