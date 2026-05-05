@@ -153,11 +153,11 @@ export default class CircleGestureRecognizer {
      * @returns {null}
      * @todo Build logic
      * 
-     * | type       | payload
-     * | ---------- | -------------------------------------------------------- |
-     * | START      | @type {PointSample} {x, y, t} |
-     * | ADD_POINT  | @type {PointSample} {x, y, t} |
-     * | END        | @type {PointSample} {x, y, t} |
+     * | type         | payload
+     * | ------------ | ------------------------------------------------------ |
+     * | START        | @type {PointSample} {x, y, t} |
+     * | POINT_ADDED  | @type {PointSample} {x, y, t} |
+     * | END          | @type {PointSample} {x, y, t} |
      */
     send(type, payload={}) {
         const currentState = this.smDefinition[this.state];
