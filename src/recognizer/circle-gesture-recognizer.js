@@ -142,7 +142,7 @@ export default class CircleGestureRecognizer {
 
         /**@type {SampleLog|null} */
         this.log = null
-        this.state = "idle";
+        this.state = this.smDefinition.initial ?? "idle";
     }
 
     /**
