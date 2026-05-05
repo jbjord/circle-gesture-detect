@@ -363,17 +363,22 @@ export default class CircleGestureRecognizer {
      * @param {PointSample} point 
      */
     start(point) {
-        this.state.start?.(this, point);
+        this.send("START", { point });
     }
 
-    
+    /**
+     * Add a point to the current gesture.
+     * @param {PointSample} point
+     */
+    addPoint(point) {
+        this.send("POINT_ADDED", { point });
+    }
 
     /**
      * Signal that the gesture has ended.
-     * @param {string} [msg] - Message about why gesture ended.
      */
-    end(msg = "") {
-        this.state.end?.(this, msg);
+    end() {
+        this.send("END", {});
     }
     
 
