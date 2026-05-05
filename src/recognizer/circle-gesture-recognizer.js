@@ -174,21 +174,16 @@ export default class CircleGestureRecognizer {
      **************************************************************************/
     guardHandlers = {
         shouldLeaveTooEarly: () => this.#shouldLeaveTooEarly(),
-        shouldRejectCircle: (state, phase) => this.#shouldRejectCircle(state, phase),
+        shouldRejectCircle: (meta) => this.#shouldRejectCircle(meta.state, meta.phase),
         shouldPromotePossibleCircle: () => this.#shouldPromotePossibleCircle(),
         meetsAllCircularityChecks: () => this.#meetsAllCircularityChecks()
     };
 
     updateHandlers = {
-        addPoint: (sample) => this.#addPoint(sample)
+        addPoint: (payload) => this.#addPoint(payload.point),
+        initializeSampleLog: (payload) => this.#initializeSampleLog(payload.point)
     };
 
-    effectHandlers = {
-        initializeSampleLog: (sample) => this.#initializeSampleLog(sample),
-        getRejectionReason: (state, phase) => this.#getRejectionReasonFor(state, phase),
-//        reportReject: (event) => this.#reportReject(event),
-//        reportCircleDetected: (event) => this.#reportCircleDetected(event)
-    };
 
     /**
      * State Machine Definition
