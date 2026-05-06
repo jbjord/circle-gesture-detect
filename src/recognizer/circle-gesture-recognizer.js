@@ -488,6 +488,8 @@ export default class CircleGestureRecognizer {
      * TODO: Checks to see if the gesture is too far out of round.
      * @returns {boolean}
      * @todo build logic
+     * @todo consider if there should be more tolerance early on and tighter
+     * tolerances for the final check (when we have the best centroid)
      */
     #radiusDeviationTooHigh() {
         return false;
