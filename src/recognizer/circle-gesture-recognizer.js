@@ -146,15 +146,25 @@ export default class CircleGestureRecognizer {
     /**
      * Send information to the State Machine to take action and change state
      * as appropriate.
+     * 
+     * ## Runner convention
+     *  1. Look up the current state's configuration.
+     *  2. Apply any event level `update`.
+     *  3. Evaluate guards: Choose the first matching transition.
+     *  4. Change state if the chosen transition has non-null target.
+     *  5. Build and return any requested report.
+     * 
      * @param {"START"|"POINT_ADDED"|"END"} type - the type of call 
-     * @param {{ point?: PointSample }} payload
+     * @param {{ point?: PointSample }} payload - event payload.
      * @returns {CircleReport|CircleRejectedReport|null}
+     *   Report describing the outcome of this event, or null @@
      * @todo Build logic
      */
     send(type, payload={}) {
+        // 1. current state's configuration
         const stateDef = this.smDefinition.states[this.state];
-        const config = statDef?.on?.[type];
-        if (!config) return null;
+        const eventDef = stateDef?.on?.[type];
+        if (!eventDef) return null;
 
        
         //todo
@@ -199,7 +209,7 @@ export default class CircleGestureRecognizer {
      *  - target: null means remain in the current state
      *  - update runs before transition guards are evaluated
      *  - first matching guarded transition wins
-     *  - effects are to be collected by the runner and returned to caller
+     *  - reports are to be collected by the runner and returned to caller
      * 
      * @todo build out targets, effects, and guards
      */
@@ -601,6 +611,23 @@ export default class CircleGestureRecognizer {
     }
 
     /**
+     * Maps event type to the rejection rule phase
+     * @param {"POINT_ADDED"|"END"|"START"} type 
+     * @returns {"ADD"|"END"|null}
+     */
+    #getPhaseForEvent(type) {
+        if (type === "POINT_ADDED") {
+            return "ADD";
+        }
+        if (type === "END") {
+            return "END";
+        }
+        return null;
+    }
+
+
+
+    /**
      * Returns the proper report.
      * @param {"pending"|"accept"|"reject"|undefined} reportKind
      * @param {{ state: string, phase: "ADD"|"END"}} meta
@@ -612,6 +639,9 @@ export default class CircleGestureRecognizer {
             return this.#getCircleAcceptedReport();
         }
         if (reportKind === "reject") {
+            if (!meta.phase) {
+                throw new Error("Reject report requires a valid phase.");
+            }
             return this.#getCircleRejectedReport(meta.state, meta.phase);
         }
         if (reportKind === "pending") {
