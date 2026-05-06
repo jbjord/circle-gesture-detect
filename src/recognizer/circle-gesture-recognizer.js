@@ -599,6 +599,26 @@ export default class CircleGestureRecognizer {
     }
 
     /**
+     * Returns the proper report.
+     * @param {"pending"|"accept"|"reject"|undefined} reportKind
+     * @param {{ state: string, phase: "ADD"|"END"}} meta
+     * @returns {CircleReport|CircleRejectedReport|null}
+     * @private
+     */
+    #buildReport(reportKind, meta) {
+        if (reportKind === "accept") {
+            return this.#getCircleAcceptedReport();
+        }
+        if (reportKind === "reject") {
+            return this.#getCircleRejectedReport(meta.state, meta.phase);
+        }
+        if (reportKind === "pending") {
+            return this.#getPendingCircleReport();
+        }
+        return null;
+    }
+
+    /**
      * Returns a report for a continuing gesture (neither accepted nor rejected).
      * @returns {CircleReport}
      */
