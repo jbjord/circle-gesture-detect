@@ -166,14 +166,27 @@ export default class CircleGestureRecognizer {
         const eventDef = stateDef?.on?.[type];
         if (!eventDef) return null;
 
-       
-        //todo
-        //state machine runner
-        //1. receive current state + event (above)
+        // make metadata used by some guards/reporters
+        const meta = {
+            state = this.state,
+            phase: this.#getPhaseForEvent(type), //get ADD/END
+            type,
+            payload
+        };
+
         //2. apply event-level update if appropriate
+        if (eventDef.update) {
+            const updateFunc = this.updateHandlers[eventDef.update];
+
+            if (!updateFunc) {
+                throw new Error(`Unknown update handler: ${eventDef.update}`);
+            }
+            updateFunc(payload);
+        }
+
         //3. select the first matching transition by guard
-        //4. gather/call any declared effects from that transition
-        //5. return info about state, changed, effects
+        //4. apply state change
+        //5. return report about state, changed, effects
 
         return null;
 
