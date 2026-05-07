@@ -207,6 +207,39 @@ export default class CircleGestureRecognizer {
         initializeSampleLog: (payload) => this.#initializeSampleLog(payload.point)
     };
 
+    /**
+     * Checks the guards in order (if any) and returns the target state.
+     * @param {object} stateData 
+     * @param {*} meta 
+     * @returns {string|null} the target state, null = no change
+     */
+    #getTransitionTarget(stateData, meta) {
+        const transitions = stateData.transitions;
+        if (!transitions) {
+            //not ADD_POINT
+            return stateData.target;
+        }
+
+        for (const transition of transitions) {
+            if (!transition.guard) {
+                //unguarded transition is default
+                return transition.target;
+            }
+
+            const guardFunc = this.guardHandlers[transition.guard];
+            if (!guardFunc) {
+                throw new Error(`Unknown guard handler: ${transition.guard}`);
+            }
+
+            //try guardFunc, return target if guard is true
+            if (guardFunc(meta)) {
+                return transition.target;
+            }
+        }
+
+        return null;
+    }
+
 
     /**
      * State Machine Definition
