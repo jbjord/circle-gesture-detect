@@ -208,22 +208,23 @@ export default class CircleGestureRecognizer {
     };
 
     /**
-     * Checks the guards in order (if any) and returns the target state.
+     * Checks the guards in order (if any) and returns the transition.
      * @param {object} stateData 
      * @param {*} meta 
-     * @returns {string|null} the target state, null = no change
+     * @returns {{guard?: string, target: string|null, report?: string}|null} 
+     *   the target transition
      */
-    #getTransitionTarget(stateData, meta) {
+    #getTransition(stateData, meta) {
         const transitions = stateData.transitions;
         if (!transitions) {
             //not ADD_POINT
-            return stateData.target;
+            return stateData;
         }
 
         for (const transition of transitions) {
             if (!transition.guard) {
                 //unguarded transition is default
-                return transition.target;
+                return transition;
             }
 
             const guardFunc = this.guardHandlers[transition.guard];
@@ -233,7 +234,7 @@ export default class CircleGestureRecognizer {
 
             //try guardFunc, return target if guard is true
             if (guardFunc(meta)) {
-                return transition.target;
+                return transition;
             }
         }
 
