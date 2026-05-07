@@ -157,8 +157,8 @@ export default class CircleGestureRecognizer {
      * @param {"START"|"POINT_ADDED"|"END"} type - the type of call 
      * @param {{ point?: PointSample }} payload - event payload.
      * @returns {CircleReport|CircleRejectedReport|null}
-     *   Report describing the outcome of this event, or null @@
-     * @todo Build logic
+     *   Report describing the outcome of this event, or null if event results 
+     *   in no report
      */
     send(type, payload={}) {
         // 1. current state's configuration
@@ -168,7 +168,7 @@ export default class CircleGestureRecognizer {
 
         // make metadata used by some guards/reporters
         const meta = {
-            state = this.state,
+            state: this.state,
             phase: this.#getPhaseForEvent(type), //get ADD/END
             type,
             payload
@@ -185,10 +185,18 @@ export default class CircleGestureRecognizer {
         }
 
         //3. select the first matching transition by guard
-        //4. apply state change
-        //5. return report about state, changed, effects
+        const chosenTransition = this.#getTransition(eventDef, meta);
+        if (!chosenTransition) {
+            return null
+        }
 
-        return null;
+        //4. apply state change
+        if (chosenTransition.target !== null && chosenTransition.target !== undefined) {
+            this.state = chosenTransition.target;
+        }
+
+        //5. return report about state, changed, effects
+        return this.#buildReport(chosenTransition.report, meta);
 
     }
 
@@ -677,7 +685,7 @@ export default class CircleGestureRecognizer {
     /**
      * Returns the proper report.
      * @param {"pending"|"accept"|"reject"|undefined} reportKind
-     * @param {{ state: string, phase: "ADD"|"END"}} meta
+     * @param {{ state: string, phase: "ADD"|"END"|null}} meta
      * @returns {CircleReport|CircleRejectedReport|null}
      * @private
      */
