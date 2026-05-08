@@ -1,5 +1,5 @@
 /**
- * Default thresholds for circle gesture detection.
+ * Thresholds for circle gesture detection.
  *
  * @typedef {object} CircleGestureThresholds
  * @property {number} dejitterDistance - Minimum movement before logging a 
@@ -38,16 +38,17 @@
  * For closure thresholds `closureDistancePx` and `closureDistanceRadiusRatio`:
  *  - If both are null, then there is effectively no closure distance threshold.
  *  - If only one is specified, then that governs.
- *  - If both are specified, the effective threshold is **larger** of:
+ *  - If both are specified, the effective threshold is the **larger** of:
  *     - `closureDistancePx`
  *     - `closureDistanceRadiusRatio`
  */
 
 /**
+ * Default thresholds for circle gesture detection.
  * @type {CircleGestureThresholds}
  */
 export const DEFAULT_THRESHOLDS = {
-    dejitterDistance: 3,
+    dejitterDistance: 2.5,
     minDiameter: 20,
     maxDiameter: 1080,
     minSamples: 5,

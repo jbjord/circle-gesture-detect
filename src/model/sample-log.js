@@ -1,3 +1,10 @@
+import PointSample from "./point-sample";
+
+/**
+ * Rotational direction of gesture.
+ * @typedef {"straight"|"counterclockwise"|"clockwise"} Direction
+ */
+
 /**
  * Log of sampled points for a gesture.
  * @class
@@ -260,8 +267,8 @@ export default class SampleLog {
 
     /**
      * Check to see if direction has changed.
-     * @param {"straight"|"counterclockwise"|"clockwise"} dir1 - First direction.
-     * @param {"straight"|"counterclockwise"|"clockwise"} dir2 - Second direction.
+     * @param {Direction} dir1 - First direction.
+     * @param {Direction} dir2 - Second direction.
      * @returns {boolean}
      */
     #isDirectionChanged(dir1, dir2) {
