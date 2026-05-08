@@ -676,6 +676,16 @@ export default class CircleGestureRecognizer {
             y: sumY / sample.length
         };
     }
+
+    /**
+     * Returns the mean radius of the current gesture samples.
+     * @returns {number}
+     */
+    #getMeanRadius() {
+        const centoid = this.#computeCentroid();
+        const radii = this.#computeRadii(centroid);
+        return radii.reduce((sum, r) => sum + r, 0) / radii.length;
+    }
     
     /**
      * Calculates normalized radius deviation of points from their mean centroid.
@@ -691,11 +701,8 @@ export default class CircleGestureRecognizer {
             sample = this.log.log;
         }
 
-        const c = this.#computeCentroid(sample);
+        mean = this.#getMeanRadius();
 
-        const radii = this.#computeRadii(c, sample);
-
-        const mean = radii.reduce((a, b) => a + b, 0) / radii.length;
         if (mean === 0) return Infinity;
 
         const variance = radii.reduce((acc, r) => acc + (r - mean) ** 2, 0) / radii.length;
