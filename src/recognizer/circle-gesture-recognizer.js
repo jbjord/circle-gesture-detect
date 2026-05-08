@@ -3,6 +3,58 @@ import SampleLog from "../model/sample-log.js";
 import CircleGestureThresholds from "../config/default-thresholds.js"
 
 /**
+ * @typedef {"START"|"POINT_ADDED"|"END"} MachineEventType
+ */
+
+/**
+ * @typedef {"ADD"|"END"|null} MachinePhase
+ */
+
+/**
+ * Metadata built by the runner for the current event.
+ * @typedef {Object} MachineMeta
+ * @property {string} state - State before any transition is applied.
+ * @property {MachinePhase} phase - Rejection-rule phase derived from event type.
+ * @property {MachineEventType} type - Event type.
+ * @property {{ point?: PointSample }} payload - Raw event payload.
+ */
+
+/**
+ * @typedef {"pending"|"accept"|"reject"} ReportKind
+ */
+
+/**
+ * A single transition branch.
+ * @typedef {Object} MachineTransition
+ * @property {string} [guard] - Name of guard handler.
+ * @property {string|null} target - Next state or null to stay in current state.
+ * @property {ReportKind} [report] - Report that should be built after transition.
+ */
+
+/**
+ * Event configuration for one state-event pair. If `transitions` is omitted,
+ * the even config itself acts as the transition.
+ * @typedef {Object} MachineEventConfig
+ * @property {string} [update] - Update handler to run before guards.
+ * @property {string|null} [target] - Next state for non-branching events.
+ * @property {ReportKind} [report] - Direct report for non-branching events.
+ * @property {MachineTransition[]} [transitions] - Ordered transition branches.
+ */
+
+/**
+ * Mapping of handled events within a single state.
+ * @typedef {Object} MachineStateConfig
+ * @property {Object<string, MachineEventConfig>} on - Event handlers for the state.
+ */
+
+/**
+ * Whole state machine definition object.
+ * @typedef {Object} MachineDefinition
+ * @property {string} initial - Initial state name.
+ * @property {Object<string, MachineStateConfig>} states - Per-state configurations.
+ */
+
+/**
  * @typedef {Object} RejectionReason
  * @property {string} code - Stable machine-readable reason code.
  * @property {string} message - Human-readable rejection message.
@@ -154,11 +206,12 @@ export default class CircleGestureRecognizer {
      *  4. Change state if the chosen transition has non-null target.
      *  5. Build and return any requested report.
      * 
-     * @param {"START"|"POINT_ADDED"|"END"} type - the type of call 
-     * @param {{ point?: PointSample }} payload - event payload.
+     * @param {MachineEventType} type - The event type. 
+     * @param {{ point?: PointSample }} [payload={}] - Event payload.
      * @returns {CircleReport|CircleRejectedReport|null}
      *   Report describing the outcome of this event, or null if event results 
      *   in no report
+     * @throws {Error} If unknown handler is referenced.
      */
     send(type, payload={}) {
         // 1. current state's configuration
@@ -217,10 +270,11 @@ export default class CircleGestureRecognizer {
 
     /**
      * Checks the guards in order (if any) and returns the transition.
-     * @param {object} stateData 
-     * @param {*} meta 
-     * @returns {{guard?: string, target: string|null, report?: string}|null} 
+     * @param {MachineEventConfig} stateData 
+     * @param {MachineMeta} meta 
+     * @returns {MachineTransition|MachineEventConfig|null} 
      *   the target transition
+     * @throws {Error} If invalid guard handler.
      */
     #getTransition(stateData, meta) {
         const transitions = stateData.transitions;
@@ -266,7 +320,7 @@ export default class CircleGestureRecognizer {
      *  - first matching guarded transition wins
      *  - reports are to be collected by the runner and returned to caller
      * 
-     * @todo build out targets, effects, and guards
+     * @type {MachineDefinition}
      */
     smDefinition = {
         initial: "idle",
@@ -470,7 +524,7 @@ export default class CircleGestureRecognizer {
      * Checks if any applicable condition is met that would cause a circle to 
      * be rejected.
      * @param {string} state - the state machine's state
-     * @param {"ADD"|"END"} phase phase - the phase of gesture handling
+     * @param {MachinePhase} phase phase - the phase of gesture handling
      * @returns {boolean}
      */
     #shouldRejectCircle(state, phase) {
@@ -486,7 +540,7 @@ export default class CircleGestureRecognizer {
     /**
      * Determines why the gesture was rejected (as not circular).
      * @param {string} state - the state machine's state
-     * @param {"ADD"|"END"} phase - the phase of gesture handling
+     * @param {MachinePhase} phase - the phase of gesture handling
      * @returns {RejectionReason} 
      * @throws {Error} If no state or rejection reason is available.
      */
@@ -543,6 +597,7 @@ export default class CircleGestureRecognizer {
 
     /**
      * Checks to see if the gesture has had too many reversals/backtracks.
+     * @returns {boolean}
      */
     #hasTooManyBacktracks() {
         const backtrackCount = this.log.directionChangeCount;
@@ -667,8 +722,8 @@ export default class CircleGestureRecognizer {
 
     /**
      * Maps event type to the rejection rule phase
-     * @param {"POINT_ADDED"|"END"|"START"} type 
-     * @returns {"ADD"|"END"|null}
+     * @param {MachineEventType} type 
+     * @returns {MachinePhase}
      */
     #getPhaseForEvent(type) {
         if (type === "POINT_ADDED") {
@@ -684,9 +739,10 @@ export default class CircleGestureRecognizer {
 
     /**
      * Returns the proper report.
-     * @param {"pending"|"accept"|"reject"|undefined} reportKind
-     * @param {{ state: string, phase: "ADD"|"END"|null}} meta
+     * @param {ReportKind|undefined} reportKind
+     * @param {MachineMeta} meta
      * @returns {CircleReport|CircleRejectedReport|null}
+     * @throws {Error} If invalid phase in meta.
      * @private
      */
     #buildReport(reportKind, meta) {
@@ -734,7 +790,7 @@ export default class CircleGestureRecognizer {
     /**
      * Returns object for reporting circle gesture rejection.
      * @param {"idle"|"tooEarly"|"possibleCircle"|"circleLikely"} state 
-     * @param {"ADD"|"END"} phase 
+     * @param {MachinePhase} phase 
      * @returns {CircleRejectedReport}
      */
     #getCircleRejectedReport(state, phase) {
