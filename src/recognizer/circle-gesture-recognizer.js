@@ -702,7 +702,7 @@ export default class CircleGestureRecognizer {
      * @returns {number}
      */
     #getMeanRadius() {
-        const centoid = this.#computeCentroid();
+        const centroid = this.#computeCentroid();
         const radii = this.#computeRadii(centroid);
         return radii.reduce((sum, r) => sum + r, 0) / radii.length;
     }
