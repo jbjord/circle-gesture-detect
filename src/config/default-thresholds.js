@@ -21,9 +21,13 @@
  *   as a complete circle.
  * @property {number|null} circularityTolerance
  *   Allowed variance in radius.
- * @property {number|null} closureDistance
- *   Maximum distance between start and end points in px
- * 
+ * @property {number|null} closureDistancePx
+ *   Maximum distance between start and end points in px. May be used alone 
+ *   or together with `closureDistanceRadiusRatio`
+ * @property {number|null} closureDistanceRadiusRatio
+ *   Maximum distance between start and end points defined as a fraction of the 
+ *   final calculated radius. May be used alone or together with 
+ *   `closureDistancePx`
  * 
  * @description
  * Classification is intended to begin only after both `minSamples` and 
@@ -31,6 +35,12 @@
  *  - If only one is specified, then that governs.
  *  - If both are specified, classification waits for the later of the two 
  * conditions to be met.
+ * For closure thresholds `closureDistancePx` and `closureDistanceRadiusRatio`:
+ *  - If both are null, then there is effectively no closure distance threshold.
+ *  - If only one is specified, then that governs.
+ *  - If both are specified, the effective threshold is **larger** of:
+ *     - `closureDistancePx`
+ *     - `closureDistanceRadiusRatio`
  */
 
 /**
@@ -46,5 +56,6 @@ export const DEFAULT_THRESHOLDS = {
     centroidCalcAngleAccum: 180,
     completeAngleAccum: 330,
     circularityTolerance: 0.18,
-    closureDistance: null
+    closureDistancePx: null,
+    closureDistanceRadiusRatio: null
 };

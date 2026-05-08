@@ -630,8 +630,25 @@ export default class CircleGestureRecognizer {
      * @returns {boolean}
      */
     #meetsClosureDistance() {
-        const limit = this.thresholds.closureDistance;
-        return limit == null || this.log.distanceFromStart() <= limit;
+        const pxLimit = this.thresholds.closureDistancePx;
+        const ratioLimit = this.thresholds.closureDistanceRadiusRatio;
+
+        if (pxLimit == null && ratioLimit == null) {
+            return true;
+        }
+
+        let limit = null;
+        if (pxLimit != null) {
+            limit = pxLimit;
+        }
+
+        if (ratioLimit != null) {
+            const radius = this.#getMeanRadius();
+            const scaledLimit = radius * ratioLimit;
+            limit = limit == null ? scaledLimit : Math.max(pxLimit, scaledLimit);
+        }
+
+        return this.log.distanceFromStart() <= limit;
     }
 
     /**
