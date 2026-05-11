@@ -83,18 +83,28 @@ export default class GestureSampler {
     /**
      * Handle PointerMove event by adding point and disabling default actions 
      * and emitting events as appropriate
-     * @param {PointerEvent} e  
-     * @todo Add more logic
+     * @param {PointerEvent} e 
      */
     #onPointerMove(e) {
+        if (this.decisionMade) return;
         if (this.#pointerId !== null) return;
+        
+        const point = new PointSample(e.clientX, e.clientY, e.timeStamp);
+        const report = this.recognizer.send("ADD_POINT", {point: p});
 
-        this.recognizer.addPoint(e.clientX, e.clientY, e.timeStamp);
+        if (report) {
+            this.onReport?.({point, report, rawEvent: e});
 
-        //@todo add logic here to 
-        // - disable default actions on target when appropriate
-        // - emit circle complete event?
-        // - emit definitely-not-a-circle event
+            if (report.decision) {
+                this.decisionMade = true;
+                this.onSessionStop?.({
+                    reason: report.decision,
+                    point,
+                    report,
+                    rawEvent: e
+                })
+            }
+        }
 
     }
 
@@ -107,7 +117,8 @@ export default class GestureSampler {
     #onPointerUp(e) {
         if (this.#pointerId !== null) return;
 
-        this.recognizer.addPoint(e.clientX, e.clientY, e.timeStamp);
+        const p = new PointSample(e.clientX, e.clientY, e.timeStamp);
+        const result = this.recognizer.send("END", {point: p});
 
         //@todo add logic here to
         // - do a final check of thresholds
