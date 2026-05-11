@@ -87,7 +87,7 @@ export default class GestureSampler {
      */
     #onPointerMove(e) {
         if (this.decisionMade) return;
-        if (this.#pointerId !== null) return;
+        if (this.#pointerId !== e.pointerId) return;
         
         const point = new PointSample(e.clientX, e.clientY, e.timeStamp);
         const report = this.recognizer.send("POINT_ADDED", {point});
@@ -101,7 +101,7 @@ export default class GestureSampler {
      * @todo Add more logic
      */
     #onPointerUp(e) {
-        if (this.#pointerId !== null) return;
+        if (this.#pointerId !== e.pointerId) return;
 
         const p = new PointSample(e.clientX, e.clientY, e.timeStamp);
         const result = this.recognizer.send("END", {point: p});
