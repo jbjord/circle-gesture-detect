@@ -123,10 +123,16 @@ export default class GestureSampler {
     }
 
     /**
-     * @todo
+     * Handle PointerCancel event.
+     * @param {PointerEvent} e 
      */
     #onPointerCancel(e) {
+        if (this.#pointerId !== e.pointerId) return;
 
+        this.onCancel?.({ rawEvent: e });
+
+        this.decisionMade = false;
+        this.#pointerId = null;
     }
 
     /**
