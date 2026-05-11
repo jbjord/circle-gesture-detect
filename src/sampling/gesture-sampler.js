@@ -1,11 +1,8 @@
 import PointSample from "../model/point-sample.js"
-import { DEFAULT_THRESHOLDS } from "../config/default-thresholds.js";
 import CircleGestureRecognizer from "../recognizer/circle-gesture-recognizer.js";
 
 /**
- * Handle DOM pointer events, feed them into CircleGestureRecognizer,
- * and manage default-action suppression.
- * @todo default-action suppression
+ * Handle DOM pointer events, feed them into CircleGestureRecognizer.
  */
 export default class GestureSampler {
     #pointerId = null;
@@ -96,7 +93,6 @@ export default class GestureSampler {
     /**
      * Handle PointerUp event by adding final point and reporting
      * @param {PointerEvent} e 
-     * @todo Add more logic
      */
     #onPointerUp(e) {
         if (this.#pointerId !== e.pointerId) return;
