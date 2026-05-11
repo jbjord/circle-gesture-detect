@@ -20,7 +20,7 @@ export default class GestureSampler {
      * @param {HTMLElement|Document} target 
      * @param {CircleGestureRecognizer} recognizer
      */
-    constructor(target, recognizer, callbacks) {
+    constructor(target, recognizer, callbacks = {}) {
         this.target = target;
         this.recognizer = recognizer;
 
@@ -30,10 +30,9 @@ export default class GestureSampler {
          */
         this.decisionMade = false;
 
-        this.#pointerId = null; //????
-
         this.onSessionStart = callbacks.onSessionStart;
         this.onReport = callbacks.onReport;
+        this.onDecision = callbacks.onDecision;
         this.onSessionStop = callbacks.onSessionStop;
         this.onCancel = callbacks.onCancel;
 
