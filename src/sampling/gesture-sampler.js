@@ -1,5 +1,6 @@
 import PointSample from "../model/point-sample.js"
 import { DEFAULT_THRESHOLDS } from "../config/default-thresholds.js";
+import CircleGestureRecognizer from "../recognizer/circle-gesture-recognizer.js";
 
 /**
  * Handle DOM pointer events, feed them into CircleGestureRecognizer,
@@ -17,15 +18,24 @@ export default class GestureSampler {
 
     /**
      * @param {HTMLElement|Document} target 
-     * @param {CircleGestureThresholds} [thresholds] - thresholds for detection
+     * @param {CircleGestureRecognizer} recognizer
      */
-    constructor(target, thresholds = {}) {
+    constructor(target, recognizer, callbacks) {
         this.target = target;
-        this.thresholds = { ...DEFAULT_THRESHOLDS, ...thresholds };
-        
-        this.recognizer = new CircleGestureRecognizer(this.thresholds);
+        this.recognizer = recognizer;
 
-        this.#pointerId = null;
+        /**
+         * Whether the gesture decision has been made or not
+         * @type {boolean}
+         */
+        this.decisionMade = false;
+
+        this.#pointerId = null; //????
+
+        this.onSessionStart = callbacks.onSessionStart;
+        this.onReport = callbacks.onReport;
+        this.onSessionStop = callbacks.onSessionStop;
+        this.onCancel = callbacks.onCancel;
 
         this.#boundPointerDown = this.#onPointerDown.bind(this);
         this.#boundPointerMove = this.#onPointerMove.bind(this);
@@ -105,24 +115,6 @@ export default class GestureSampler {
      */
     #onPointerCancel(e) {
 
-    }
-
-    /**
-     * Return the state machine data of the gesture recognizer.
-     * @todo
-     */
-    getGestureState() {
-
-    }
-
-    /**
-     * Emit events from the target element.
-     * @todo
-     * @param {*} name 
-     * @param {*} detail 
-     */
-    #emit(name, detail = {}) {
-        this.target.dispatchEvent(new CustomEvent(name, { detail }));
     }
 
 }
