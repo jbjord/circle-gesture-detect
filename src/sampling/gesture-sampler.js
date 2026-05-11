@@ -81,8 +81,7 @@ export default class GestureSampler {
     }
 
     /**
-     * Handle PointerMove event by adding point and disabling default actions 
-     * and emitting events as appropriate
+     * Handle PointerMove event by adding point and reporting as appropriate.
      * @param {PointerEvent} e 
      */
     #onPointerMove(e) {
@@ -96,8 +95,7 @@ export default class GestureSampler {
     }
 
     /**
-     * Handle PointerUp event by adding final point.
-     * Other logic needs to be implemented.
+     * Handle PointerUp event by adding final point and reporting
      * @param {PointerEvent} e 
      * @todo Add more logic
      */
