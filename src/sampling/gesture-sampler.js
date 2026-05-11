@@ -102,16 +102,24 @@ export default class GestureSampler {
     #onPointerUp(e) {
         if (this.#pointerId !== e.pointerId) return;
 
-        const point = new PointSample(e.clientX, e.clientY, e.timeStamp);
-        const report = this.recognizer.send("END", {point});
+        let report = null;
+        let point = null;
 
-        if (this.decisionMade) {
-            this.decisionMade = false;
-            return;
+        if (!this.decisionMade) {
+            point = new PointSample(e.clientX, e.clientY, e.timeStamp);
+            report = this.recognizer.send("END", {point});
+            this.#handleReport(report, point, e);
         }
+
+        this.onSessionStop?.({
+            reason: this.decisionMade ? "decision" : "pointerup",
+            report,
+            point,
+            rawEvent: e
+        });
         
-        this.#handleReport(report, point, e);
         this.decisionMade = false;
+        this.#pointerId = null;
     }
 
     /**
