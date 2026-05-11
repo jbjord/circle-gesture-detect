@@ -90,21 +90,7 @@ export default class GestureSampler {
         if (this.#pointerId !== null) return;
         
         const point = new PointSample(e.clientX, e.clientY, e.timeStamp);
-        const report = this.recognizer.send("ADD_POINT", {point: p});
-
-        if (report) {
-            this.onReport?.({point, report, rawEvent: e});
-
-            if (report.decision) {
-                this.decisionMade = true;
-                this.onSessionStop?.({
-                    reason: report.decision,
-                    point,
-                    report,
-                    rawEvent: e
-                })
-            }
-        }
+        const report = this.recognizer.send("POINT_ADDED", {point});
 
     }
 
