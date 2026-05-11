@@ -2,7 +2,65 @@ import PointSample from "../model/point-sample.js"
 import CircleGestureRecognizer from "../recognizer/circle-gesture-recognizer.js";
 
 /**
+ * Payload passed to onSessionStart callback.
+ * @typedef {Object} GestureSessionStartEvent
+ * @property {PointSample} point - First sample of the gesture.
+ * @property {CircleReport|CircleRejectedReport|null} report
+ *   Initial report from the recognizer, if any.
+ * @property {PointerEvent} rawEvent - Source pointerdown event.
+ */
+
+/**
+ * Payload passed to onReport callback.
+ * @typedef {Object} GestureReportEvent
+ * @property {CircleReport|CircleRejectedReport} report - Recognizer report.
+ * @property {PointSample} point - Sample that triggered this report.
+ * @property {PointerEvent} rawEvent - Source pointer event.
+ */
+
+/**
+ * Payload passed to onDecision callback.
+ * @typedef {Object} GestureDecisionEvent
+ * @property {"acceptCircle"|"rejectCircle"} reason - Terminal decision code.
+ * @property {CircleReport|CircleRejectedReport} report - Final recognizer report.
+ * @property {PointSample} point - Sample at which the decision was made.
+ * @property {PointerEvent} rawEvent - Source pointer event.
+ */
+
+/**
+ * Payload passed to onSessionStop callback.
+ * @typedef {Object} GestureSessionStopEvent
+ * @property {"acceptCircle"|"rejectCircle"|"pointerup"} reason
+ *   Reason the gesture session ended.
+ * @property {CircleReport|CircleRejectedReport|null} report
+ *   Final report if available, otherwise null.
+ * @property {PointSample|null} point
+ *   Last sample seen, or null if no final sample was added.
+ * @property {PointerEvent} rawEvent - Source pointerup event.
+ */
+
+/**
+ * Payload passed to onCancel callback.
+ * @typedef {Object} GestureCancelEvent
+ * @property {PointerEvent} rawEvent - Source pointercancel event.
+ */
+
+/**
+ * Callbacks used by GestureSampler to report lifecycle events.
+ * All fields are optional.
+ * @typedef {Object} GestureSamplerCallbacks
+ * @property {(e: GestureSessionStartEvent) => void} [onSessionStart]
+ * @property {(e: GestureReportEvent) => void} [onReport]
+ * @property {(e: GestureDecisionEvent) => void} [onDecision]
+ * @property {(e: GestureSessionStopEvent) => void} [onSessionStop]
+ * @property {(e: GestureCancelEvent) => void} [onCancel]
+ */
+
+/**
  * Handle DOM pointer events, feed them into CircleGestureRecognizer.
+ *  - Tracks a single active pointer via pointerId.
+ *  - Stops feeding the recognizer after accept/reject decision.
+ *  - Reports lifecycle & recognizer events through callbacks.
  */
 export default class GestureSampler {
     #pointerId = null;
@@ -14,8 +72,13 @@ export default class GestureSampler {
     #boundPointerCancel;
 
     /**
+     * Create a GestureSampler bound to target el and recognizer.
      * @param {HTMLElement|Document} target 
+     *   Element/Document to listen on for pointer events.
      * @param {CircleGestureRecognizer} recognizer
+     *   Recognizer that will recieve gesture events.
+     * @param {GestureSamplerCallbacks} [callbacks={}]
+     *   Optional callbacks invoked as the gesture progresses.
      */
     constructor(target, recognizer, callbacks = {}) {
         this.target = target;
@@ -56,7 +119,10 @@ export default class GestureSampler {
 
     /**
      * Handle PointerDown event by starting recognizer.
+     * Emits onSessionStart.
+     * Emits onReport if a report is returned.
      * @param {PointerEvent} e 
+     * @private
      */
     #onPointerDown(e) {
         if (this.#pointerId !== null) {
@@ -78,7 +144,10 @@ export default class GestureSampler {
 
     /**
      * Handle PointerMove event by adding point and reporting as appropriate.
+     * Emits onReport.
+     * Emits onDecision if recognizer reaches a decision.
      * @param {PointerEvent} e 
+     * @private
      */
     #onPointerMove(e) {
         if (this.decisionMade) return;
@@ -91,8 +160,11 @@ export default class GestureSampler {
     }
 
     /**
-     * Handle PointerUp event by adding final point and reporting
+     * Handle PointerUp event by adding final point and reporting.
+     * Emits onSessionStop.
+     * Emits onDecision if recognizer reaches a decision.
      * @param {PointerEvent} e 
+     * @private
      */
     #onPointerUp(e) {
         if (this.#pointerId !== e.pointerId) return;
@@ -107,7 +179,7 @@ export default class GestureSampler {
         }
 
         this.onSessionStop?.({
-            reason: this.decisionMade ? "decision" : "pointerup",
+            reason: report?.decision ?? "pointerup",
             report,
             point,
             rawEvent: e
@@ -119,7 +191,9 @@ export default class GestureSampler {
 
     /**
      * Handle PointerCancel event.
+     * Emits onCancel.
      * @param {PointerEvent} e 
+     * @private
      */
     #onPointerCancel(e) {
         if (this.#pointerId !== e.pointerId) return;
@@ -131,11 +205,13 @@ export default class GestureSampler {
     }
 
     /**
-     * Handles the gesture recognizer report
+     * Handles the gesture recognizer report.
+     * Emits onReport for non-null reports.
+     * Emits onDecision once per session when accept/reject is decided.
      * @param {CircleReport|CircleRejectedReport|null} report 
      * @param {PointSample} point 
      * @param {PointerEvent} rawEvent 
-     * @returns 
+     * @private
      */
     #handleReport(report, point, rawEvent) {
         if (!report) return;
