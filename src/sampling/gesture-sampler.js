@@ -52,10 +52,10 @@ export default class GestureSampler {
      * Removes event listeners associated with this GestureSampler.
      */
     destroy() {
-        this.target.removeEventListener("pointerdown", this.#onPointerDown);
-        this.target.removeEventListener("pointermove", this.#onPointerMove);
-        this.target.removeEventListener("pointerup", this.#onPointerUp);
-        this.target.removeEventListener("pointercancel", this.#onPointerUp);
+        this.target.removeEventListener("pointerdown", this.#boundPointerDown);
+        this.target.removeEventListener("pointermove", this.#boundPointerMove);
+        this.target.removeEventListener("pointerup", this.#boundPointerUp);
+        this.target.removeEventListener("pointercancel", this.#boundPointerCancel);
     }
 
     /**
