@@ -68,9 +68,16 @@ export default class GestureSampler {
             return;
         }
 
+        this.decisionMade = false;
         this.#pointerId = e.pointerId;
-        const p = new PointSample(e.clientX, e.clientY, e.timeStamp);
-        this.recognizer.start(p);
+
+        const point = new PointSample(e.clientX, e.clientY, e.timeStamp);
+        const report = this.recognizer.send("START", {point});
+
+        this.onSessionStart?.({point, report, rawEvent: e});
+        if (report) {
+            this.onReport?.({point, report, rawEvent: e});
+        }
     }
 
     /**
