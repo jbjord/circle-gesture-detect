@@ -135,4 +135,28 @@ export default class GestureSampler {
 
     }
 
+    /**
+     * Handles the gesture recognizer report
+     * @param {CircleReport|CircleRejectedReport|null} report 
+     * @param {PointSample} point 
+     * @param {PointerEvent} rawEvent 
+     * @returns 
+     */
+    #handleReport(report, point, rawEvent) {
+        if (!report) return;
+
+        this.onReport?.({ report, point, rawEvent });
+
+        if (report.decision && !this.decisionMade) {
+            this.decisionMade = true;
+
+            this.onDecision?.({
+                reason: report.decision, 
+                report, 
+                point, 
+                rawEvent
+            });
+        }
+    }
+
 }
