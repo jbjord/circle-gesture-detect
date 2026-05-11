@@ -92,6 +92,7 @@ export default class GestureSampler {
         const point = new PointSample(e.clientX, e.clientY, e.timeStamp);
         const report = this.recognizer.send("POINT_ADDED", {point});
 
+        this.#handleReport(report, point, e);
     }
 
     /**
@@ -103,15 +104,16 @@ export default class GestureSampler {
     #onPointerUp(e) {
         if (this.#pointerId !== e.pointerId) return;
 
-        const p = new PointSample(e.clientX, e.clientY, e.timeStamp);
-        const result = this.recognizer.send("END", {point: p});
+        const point = new PointSample(e.clientX, e.clientY, e.timeStamp);
+        const report = this.recognizer.send("END", {point});
 
-        //@todo add logic here to
-        // - do a final check of thresholds
-        // - disable default actions on target when appropriate
-        // - emit circle complete event?
-        // - change recognizer to idle state?
+        if (this.decisionMade) {
+            this.decisionMade = false;
+            return;
+        }
         
+        this.#handleReport(report, point, e);
+        this.decisionMade = false;
     }
 
     /**
