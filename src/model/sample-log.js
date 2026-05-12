@@ -57,7 +57,7 @@ export default class SampleLog {
         //directional metrics
         this.clockwiseLength = 0;
         this.counterClockwiseLength = 0;
-        this.mostRecentDirection = "straight";
+        this.mostRecentDirection = null;
         this.directionChangeCount = 0;
 
         //angular metrics
@@ -113,9 +113,9 @@ export default class SampleLog {
             point = new PointSample(a, b, c);
         }
 
-        this.rawLog.add(point);
+        this.rawLog.push(point);
 
-        prev = this.log[this.log.length - 1];
+        const prev = this.log[this.log.length - 1];
         const dx = point.x - prev.x;
         const dy = point.y - prev.y;
         const step = Math.hypot(dx, dy);
@@ -246,7 +246,7 @@ export default class SampleLog {
             [a, b, c] = args;
             ({ epsilon = 0.001 } = args[3]);
         } else {
-            console.log("#getClockwiseDirection requires (), ({epsilon}), (a,b,c), or (a,b,c,{epsilon})");
+            console.warn("#getClockwiseDirection requires (), ({epsilon}), (a,b,c), or (a,b,c,{epsilon})");
             return "straight";
         }
 
@@ -299,7 +299,7 @@ export default class SampleLog {
             return;
         }
 
-        // Existance check: just set baseline and bail
+        // Existence check: just set baseline and bail
         if (!this.mostRecentDirection) {
             this.mostRecentDirection = currentDirection;
             if (currentDirection === "counterclockwise") {
@@ -348,7 +348,7 @@ export default class SampleLog {
         }
 
         if (point.y < this.#minY) {
-            this.#minY = point.xy;
+            this.#minY = point.y;
         } else if (point.y > this.#maxY) {
             this.#maxY = point.y;
         }
@@ -357,11 +357,9 @@ export default class SampleLog {
     #updateAngularMetrics() {
         if (this.log.length < 3) return;
         
-        [a, b, c] = this.log.slice(-3);
+        const [a, b, c] = this.log.slice(-3);
 
-        const vectorProducts = this.#vectorProducts(a, b, c);
-        const cross = vectorProducts.cross;
-        const dot = vectorProducts.dot;
+        const { cross, dot } = this.#vectorProducts(a, b, c);
 
         // signed turn in [-PI, PI]
         const dTheta = Math.atan2(cross, dot);
