@@ -28,6 +28,7 @@
  *   Maximum distance between start and end points defined as a fraction of the 
  *   final calculated radius. May be used alone or together with 
  *   `closureDistancePx`
+ * @property {EarlyRejectThresholds} earlyReject - Early rejection thresholds.
  * 
  * @description
  * Classification is intended to begin only after both `minSamples` and 
@@ -41,6 +42,42 @@
  *  - If both are specified, the effective threshold is the **larger** of:
  *     - `closureDistancePx`
  *     - `closureDistanceRadiusRatio`
+ */
+
+/**
+ * @typedef {object} EarlyRejectThresholds
+ * @property {boolean} enabled 
+ *   Whether early rejection thresholds are enabled or not.
+ * @property {LineLikeRejectThresholds} lineLike
+ *   Thresholds for early rejection of line-like gestures, such as scrolling.
+ */
+
+/**
+ * @typedef {object} LineLikeRejectThresholds
+ * @property {number} minPathLength
+ *   Minimum accumulated path length before line-like rejection is evaluated.
+ * @property {number} minStraightness
+ *   Minimum chord/path ratio required to consider the gesture line-like.
+ * @property {number|null} maxDeviationPx
+ *   Maximum allowed perpendicular deviation from the start-to-current line in px.
+ * @property {number|null} maxDeviationPathRatio
+ *   Maximum allowed deviation as a fraction of path length. May be used alone 
+ *   or together with `maxDeviationPx`
+ * @property {number} maxAxisErrorDeg
+ *   Maximum angular deviation from up/down/right/left axis.
+ * @property {number} consecutiveMatches
+ *   Number of consecutive move evaluations that must satisfy the line-like
+ *   reject condition before early rejection occurs.
+ * 
+ * @description
+ * For `maxDeviationPx` and `maxDeviationPathRatio` early rejection is 
+ * conservative:
+ *  - If both are null, then there is effectively no perpendicular deviation 
+ *    threshold.
+ *  - If only one is specified, then that governs.
+ *  - If both are specified, the effective threshold is the **smaller** of:
+ *     - `maxDeviationPx`
+ *     - `maxDeviationPathRatio`
  */
 
 /**
@@ -58,5 +95,17 @@ export const DEFAULT_THRESHOLDS = {
     completeAngleAccum: 330,
     circularityTolerance: 0.18,
     closureDistancePx: null,
-    closureDistanceRadiusRatio: null
+    closureDistanceRadiusRatio: null,
+
+    earlyReject: {
+        enabled: true,
+        lineLike: {
+            minPathLength: 48,
+            minStraightness: 0.95,
+            maxDeviationPx: 10,
+            maxDeviationPathRatio: null,
+            maxAxisErrorDeg: 18,
+            consecutiveMatches: 2
+        }
+    }
 };
