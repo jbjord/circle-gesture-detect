@@ -279,18 +279,6 @@ export default class SampleLog {
         return "straight";
     }
 
-    /**
-     * Check to see if direction has changed.
-     * @param {Direction} dir1 - First direction.
-     * @param {Direction} dir2 - Second direction.
-     * @returns {boolean}
-     */
-    #isDirectionChanged(dir1, dir2) {
-        if (dir1 === "straight" || dir2 === "straight") return false;
-
-        return dir1 !== dir2;
-    }
-
 
     /**
      * Update all directional metrics: this.mostRecentDirection, 
