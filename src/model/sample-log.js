@@ -68,6 +68,17 @@ export default class SampleLog {
         this.rawLog = [start]; //all points logged
         this.log = [start]; //de-jittered points
 
+        //chord metrics
+        this.chord = {
+            dx: 0,
+            dy: 0,
+            length: 0
+        };
+
+        this.maxDeviationPx = 0;
+        this.maxDeviationRatio = 0;
+        this.straightnessRatio = 0;
+
         //set initial min/max bounding coords
         this.#minX = start.x;
         this.#maxX = start.x;
@@ -128,9 +139,12 @@ export default class SampleLog {
         this.pathLength += step;
 
         this.log.push(point);
-        this.#updateDirectionalMetrics();
-        this.#updateAngularMetrics()
-        this.#updateMinMaxCoords();
+
+        this.#updateDirectionalMetrics(step);
+        this.#updateAngularMetrics();
+        this.#updateMinMaxCoords(point);
+        this.#updateChordMetrics();
+        this.#updateLinearityMetrics();
         return true;    
     }
 
@@ -367,6 +381,52 @@ export default class SampleLog {
         this.totalTurn += dTheta;
         this.totalAbsTurn += Math.abs(dTheta);
     }
+
+    /**
+     * Updates current line metrics from start to last point.
+     */
+    #updateChordMetrics() {
+        const end = this.fromLast();
+
+        this.chord.dx = end.x - this.start.x;
+        this.chord.dy = end.y - this.start.y;
+        this.chord.length = Math.hypot(this.chord.dx, this.chord.dy);
+
+        this.straightnessRatio = this.pathLength > 0 
+          ? this.chord.length / this.pathLength
+          : 0;
+    }
+
+    /**
+     * Updates linearity metrics for looks-like-a-line early rejection. 
+     */
+    #updateLinearityMetrics() {
+        if (this.log.length < 3 || this.chord.length === 0 || this.pathLength === 0) {
+            this.maxDeviationPx = 0;
+            this.maxDeviationRatio = 0;
+            return;
+        }
+
+        let maxDeviation = 0;
+
+        //no need to calculate for start and end points
+        for (let i = 1; i < this.log.length - 1; i += 1) {
+            const point = this.log[i];
+            const relX = point.x - this.start.x;
+            const relY = point.y - this.start.y;
+
+            const crossProd = relX * this.chord.dy - relY * this.chord.dx;
+            const deviation = Math.abs(crossProd) / this.chord.length;
+
+            if (deviation > maxDeviation) {
+                maxDeviation = deviation;
+            }
+        }
+
+        this.maxDeviationPx = maxDeviation;
+        this.maxDeviationRatio = maxDeviation/this.pathLength;
+    }
+
     /**
      * Check if the gesture is ready for classification.
      * If both thresholds are enabled (non-null), both must be met.
@@ -410,5 +470,59 @@ export default class SampleLog {
      */
     getTotalTurnDegrees() {
         return this.totalTurn * 180 / Math.PI;
+    }
+
+    /**
+     * Returns the angle in degrees (range 0-360) from positive x-axis of the 
+     * vector between two points.
+     * @param {PointSample} a - First point.
+     * @param {PointSample} b - Second point.
+     * @returns {number}
+     */
+    getAngleDegrees(a = this.start, b = this.fromLast()) {
+        const dy = a.y - b.y;
+        const dx = a.x - b.x;
+        const degrees = Math.atan2(dy, dx) * (180 / Math.PI);
+
+        if (degrees < 0) {
+            degrees += 360;
+        }
+
+        return degrees;
+    }
+
+
+    /**
+     * Returns the chord length, i.e., Euclidian distance between start and end.
+     * @returns {number}
+     */
+    getChordLength() {
+        return this.chord.length;
+    }
+
+    /**
+     * Returns the ratio chordLength / pathLength, which has range 0-1.
+     * @returns {number}
+     */
+    getStraightnessRatio() {
+        return this.straightnessRatio;
+    }
+
+    /**
+     * Returns the maximum deviation of logged points (in px) from the 
+     * chord formed between start and end points.
+     * @returns {number}
+     */
+    getMaxDeviationPx() {
+        return this.maxDeviationPx;
+    }
+
+    /**
+     * Returns a ratio of the maximum deviation of logged points from the 
+     * chord formed between start and end points over the path length.
+     * @returns {number}
+     */
+    getMaxDeviationRatio() {
+        return this.maxDeviationRatio;
     }
 }
